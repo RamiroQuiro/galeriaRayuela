@@ -1,0 +1,176 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { db } from "../db";
+import { planes } from "../db/schemas";
+import { eq } from "drizzle-orm";
+
+const todosLosPlanes = await db
+  .select()
+  .from(planes)
+  .where(eq(planes.activo, true))
+  .orderBy(planes.orden)
+  .all();
+
+const user = Astro.locals.user;
+---
+
+<Layout title="Planes y Precios">
+  <div
+    class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-16 px-4"
+  >
+    <div class="max-w-7xl mx-auto">
+      <!-- Header -->
+      <div class="text-center mb-16">
+        <h1 class="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+          Elige el plan perfecto para tus eventos
+        </h1>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+          Sin contratos, cancela cuando quieras. Todos los planes incluyen
+          soporte técnico.
+        </p>
+      </div>
+
+      <!-- Planes Grid -->
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        {
+          todosLosPlanes.map((plan) => {
+            const caracteristicas = JSON.parse(plan.caracteristicas || "[]");
+            const esPremium = plan.id === "premium";
+            const precioFormateado = new Intl.NumberFormat("es-AR", {
+              style: "currency",
+              currency: "ARS",
+              minimumFractionDigits: 0,
+            }).format(plan.precioMensual / 100);
+
+            return (
+              <div
+                class={`relative bg-white rounded-2xl shadow-xl p-8 transition-all hover:scale-105 ${
+                  esPremium ? "ring-4 ring-blue-500 lg:scale-110" : ""
+                }`}
+              >
+                {esPremium && (
+                  <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <span class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
+                      ⭐ MÁS POPULAR
+                    </span>
+                  </div>
+                )}
+
+                <div class="text-center mb-6">
+                  <h3 class="text-2xl font-bold text-gray-900">
+                    {plan.nombre}
+                  </h3>
+                  <p class="text-gray-600 text-sm mt-2">{plan.descripcion}</p>
+                </div>
+
+                <div class="text-center mb-8">
+                  <div class="flex items-baseline justify-center">
+                    <span class="text-5xl font-bold text-gray-900">
+                      {plan.precioMensual === 0 ? "Gratis" : precioFormateado}
+                    </span>
+                    {plan.precioMensual > 0 && (
+                      <span class="text-gray-600 ml-2">/mes</span>
+                    )}
+                  </div>
+                </div>
+
+                <ul class="space-y-4 mb-8">
+                  {caracteristicas.map((caracteristica: string) => (
+                    <li class="flex items-start">
+                      <svg
+                        class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      <span class="text-gray-700">{caracteristica}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <a
+                  href={
+                    plan.id === "gratis"
+                      ? user
+                        ? "/dashboard"
+                        : "/register"
+                      : `/pago/checkout?plan=${plan.id}`
+                  }
+                  class={`block w-full py-4 px-6 rounded-lg font-bold text-center transition-all ${
+                    esPremium
+                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg"
+                      : plan.id === "gratis"
+                        ? "bg-gray-100 text-gray-900 hover:bg-gray-200"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                  }`}
+                >
+                  {plan.id === "gratis"
+                    ? "Comenzar Gratis"
+                    : "Seleccionar Plan"}
+                </a>
+              </div>
+            );
+          })
+        }
+      </div>
+
+      <!-- FAQ o Comparación -->
+      <div class="bg-white rounded-2xl shadow-lg p-8 max-w-4xl mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-8">
+          ¿Necesitás ayuda para elegir?
+        </h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="p-6 bg-blue-50 rounded-lg">
+            <h3 class="font-bold text-lg mb-2">💡 Para eventos únicos</h3>
+            <p class="text-gray-700">
+              Si organizás un cumpleaños o evento especial, el <strong
+                >Plan Básico</strong
+              > es perfecto.
+            </p>
+          </div>
+          <div class="p-6 bg-purple-50 rounded-lg">
+            <h3 class="font-bold text-lg mb-2">🎉 Para profesionales</h3>
+            <p class="text-gray-700">
+              Si sos wedding planner o tenés una empresa de eventos, elegí <strong
+                >Premium</strong
+              > o <strong>Empresarial</strong>.
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-8 text-center">
+          <p class="text-gray-600 mb-4">¿Tenés dudas? Contactanos</p>
+          <a
+            href="mailto:soporte@galeriarayuela.com"
+            class="text-blue-600 hover:underline font-semibold"
+          >
+            soporte@galeriarayuela.com
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .hover\:scale-105:hover {
+    animation: float 3s ease-in-out infinite;
+  }
+</style>
