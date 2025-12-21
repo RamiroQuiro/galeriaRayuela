@@ -10,14 +10,12 @@ import node from '@astrojs/node';
 export default defineConfig({
   output: 'server',
   integrations: [react()],
-
+server: {
+  host: true,
+},
   vite: {
     plugins: [tailwindcss()],
-    server: {
-      host: true, // Permitir acceso externo
-      
-      open: false // No abrir navegador automáticamente
-    }
+   
   },
 
   adapter: node({
