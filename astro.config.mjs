@@ -12,10 +12,20 @@ export default defineConfig({
   integrations: [react()],
 
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    server: {
+      host: true, // Permitir acceso externo
+      
+      open: false // No abrir navegador automáticamente
+    }
   },
 
   adapter: node({
     mode: 'standalone'
-  })
+  }),
+
+  // Configuración para desactivar barra de desarrollo
+  devToolbar: {
+    enabled: false
+  }
 });
