@@ -35,23 +35,26 @@ const totalStorage = await db
   .get();
 
 // 2. Obtener lista detallada de usuarios con sus métricas
-// Nota: Drizzle query builder para joins complejos
+import { aliasedTable } from "drizzle-orm";
+const u = aliasedTable(users, "u_outer");
+
 const usersList = await db
   .select({
-    id: users.id,
-    username: users.username,
-    email: users.email,
-    tenantId: users.tenantId,
-    planId: users.planId,
-    isAdmin: users.isAdmin,
-    isVendor: users.isVendor,
-    createdAt: users.createdAt,
-    eventCount: sql<number>`(SELECT COUNT(*) FROM ${events} e WHERE e.${events.tenantId} = ${users.tenantId})`,
-    activeEventCount: sql<number>`(SELECT COUNT(*) FROM ${events} e WHERE e.${events.tenantId} = ${users.tenantId} AND e.${events.estado} = 'activo')`,
-    photoCount: sql<number>`(SELECT COUNT(i.${images.id}) FROM ${images} i JOIN ${events} e ON i.${images.eventId} = e.${events.id} WHERE e.${events.tenantId} = ${users.tenantId})`,
-    storageUsed: sql<number>`(SELECT COALESCE(SUM(i.${images.tamanioBytes}), 0) FROM ${images} i JOIN ${events} e ON i.${images.eventId} = e.${events.id} WHERE e.${events.tenantId} = ${users.tenantId})`,
+    id: u.id,
+    username: u.username,
+    email: u.email,
+    tenantId: u.tenantId,
+    planId: u.planId,
+    isAdmin: u.isAdmin,
+    isVendor: u.isVendor,
+    createdAt: u.createdAt,
+    // Correlación explícita usando el alias u_outer
+    eventCount: sql<number>`(SELECT COUNT(*) FROM ${events} e WHERE e.${events.tenantId} = ${u.tenantId})`,
+    activeEventCount: sql<number>`(SELECT COUNT(*) FROM ${events} e WHERE e.${events.tenantId} = ${u.tenantId} AND e.${events.estado} = 'activo')`,
+    photoCount: sql<number>`(SELECT COUNT(i.${images.id}) FROM ${images} i JOIN ${events} e ON i.${images.eventId} = e.${events.id} WHERE e.${events.tenantId} = ${u.tenantId})`,
+    storageUsed: sql<number>`(SELECT COALESCE(SUM(i.${images.tamanioBytes}), 0) FROM ${images} i JOIN ${events} e ON i.${images.eventId} = e.${events.id} WHERE e.${events.tenantId} = ${u.tenantId})`,
   })
-  .from(users)
+  .from(u)
   .all();
 
 // Formatear bytes a algo legible
