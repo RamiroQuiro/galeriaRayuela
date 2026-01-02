@@ -32,7 +32,7 @@ if (Astro.locals.user) {
             placeholder="Contraseña"
           />
         </div>
-        <div class="w-full flex items-center justify-end">
+        <div class="w-full flex ice items-center justify-end">
           <Button
             type="submit"
             className="w-full bg-green-600 text-white p-2 rounded glass-button"
@@ -65,7 +65,7 @@ if (Astro.locals.user) {
       });
 
       if (res.ok) {
-        window.location.href = "/dashboard";
+        window.location.href = "/onboarding";
       } else {
         const json = await res.json();
         if (error) {

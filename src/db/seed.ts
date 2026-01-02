@@ -102,16 +102,23 @@ const main = async () => {
       .insert(users)
       .values({
         id: "admin-id",
-        username: "admin",
+        username: "ramiryexe@hotmail.com",
         password: passwordHash,
         tenantId: "rayuela-360", // Tenant especial para superadmin
-        email: "admin@galeriarayuela.com",
+        email: "ramiryexe@hotmail.com",
         nombreCompleto: "Administrador Rayuela",
         planId: null,
         suscripcionActivaId: null,
         isAdmin: true,
       })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          username: "ramiryexe@hotmail.com",
+          email: "ramiryexe@hotmail.com",
+          isAdmin: true
+        }
+      });
 
     console.log("✅ Usuario superadmin ('Rayuela 360') creado");
 
@@ -174,7 +181,7 @@ const main = async () => {
     console.log("\n🎉 Seed completado exitosamente!\n");
     console.log("📊 Resumen:");
     console.log("  - 4 planes creados (Gratis, Básico, Premium, Empresarial)");
-    console.log("  - Usuario admin creado (admin / 1234)");
+    console.log("  - Usuario admin creado (ramiryexe@hotmail.com / 1234)");
     console.log("  - Plan gratis asignado al admin\n");
   } catch (e) {
     console.error("❌ Error en seed:", e);

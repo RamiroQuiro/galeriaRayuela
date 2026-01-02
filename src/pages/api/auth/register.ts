@@ -10,16 +10,19 @@ import { generateId } from 'lucia';
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     const body = await request.json();
-    const { username, password } = body;
+    const { username, email, password } = body;
 
-    if (!username || !password) {
-        return createResponse(400, 'Username and password are required');
+    // Usar email como username si se proporciona
+    const targetUsername = email || username;
+
+    if (!targetUsername || !password) {
+        return createResponse(400, 'El email y la contraseña son requeridos');
     }
 
-    const existingUser = await db.select().from(users).where(eq(users.username, username)).get();
+    const existingUser = await db.select().from(users).where(eq(users.username, targetUsername)).get();
 
     if (existingUser) {
-      return createResponse(400, 'User already exists');
+      return createResponse(400, 'El usuario ya existe');
     }
 
     const passwordHash = await hash(password, {
@@ -35,16 +38,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     await db.insert(users).values({
         id: userId,
-        username,
+        username: targetUsername,
+        email: email || targetUsername,
         password: passwordHash,
-        tenantId
+        tenantId,
+        planId: 'gratis' // Asignar plan gratis por defecto
     });
 
     const session = await lucia.createSession(userId, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
     cookies.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
 
-    return createResponse(201, 'User registered successfully', { user: { username, tenantId } });
+    return createResponse(201, 'Usuario registrado correctamente', { user: { username: targetUsername, tenantId } });
   } catch (error) {
     console.error('Registration error:', error);
     return createResponse(500, 'Internal Server Error');
