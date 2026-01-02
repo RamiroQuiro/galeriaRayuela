@@ -10,7 +10,9 @@ import {
   Printer,
   Eye,
   Calendar,
+  MessageCircle,
   Trash,
+  User,
   ArrowRight,
 } from "lucide-astro";
 import Button from "../components/ui/Button.astro";
@@ -58,14 +60,14 @@ const activeEventsCount = (
         <p class="text-gray-400">Bienvenido a tu centro de control.</p>
       </div>
       <div class="flex gap-4">
-        <a href="/marketplace">
+        <a href={`/marketplace/vendedor/${user.id}`}>
           <Button
             variant="secondary"
             size="md"
             className="flex items-center gap-2"
           >
             <Store class="h-4 w-4" />
-            Ver Marketplace
+            Ver Mi Marketplace
           </Button>
         </a>
       </div>
@@ -333,10 +335,10 @@ const activeEventsCount = (
           <div>
             <h2 class="text-2xl font-bold text-white flex items-center gap-3">
               <Store class="h-6 w-6 text-neon-pink" />
-              Mis Servicios
+              Perfil Profesional
             </h2>
             <p class="text-gray-400 text-sm mt-1">
-              Gestiona lo que ofreces a otros organizadores.
+              Tu identidad en el Marketplace de Rayuela.
             </p>
           </div>
           <a href="/services">
@@ -345,28 +347,64 @@ const activeEventsCount = (
               size="md"
               className="flex items-center gap-2"
             >
-              Gestionar Servicios
+              Editar Perfil y Servicios
               <ArrowRight class="h-4 w-4" />
             </Button>
           </a>
         </div>
 
-        <div
-          class="glass-card p-10 bg-linear-to-br from-neon-pink/5 to-transparent border-dashed border-2 border-white/10 text-center"
-        >
-          <p class="text-gray-400 mb-6 font-medium">
-            ¿Eres fotógrafo, DJ o tienes un catering? Empieza a ofrecer tus
-            servicios aquí.
-          </p>
-          <a
-            href="/services/create"
-            class="text-neon-pink hover:text-white font-bold transition-all flex items-center justify-center gap-2 group"
-          >
-            Configurar perfil de vendedor
-            <ArrowRight
-              class="h-4 w-4 group-hover:translate-x-1 transition-transform"
-            />
-          </a>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="glass-card p-6 border-white/5 bg-midnight-900/20">
+            <p
+              class="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2"
+            >
+              <User class="w-3 h-3 text-neon-pink" /> Biografía
+            </p>
+            <p class="text-sm text-gray-300 line-clamp-3 leading-relaxed">
+              {user.bio || "No has definido una biografía aún."}
+            </p>
+          </div>
+
+          <div class="glass-card p-6 border-white/5 bg-midnight-900/20">
+            <p
+              class="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-3 h-3 text-neon-blue"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                ></path>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              Ubicación
+            </p>
+            <p class="text-lg font-bold text-white">
+              {user.location || "No especificada"}
+            </p>
+          </div>
+
+          <div class="glass-card p-6 border-white/5 bg-midnight-900/20">
+            <p
+              class="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2"
+            >
+              <MessageCircle class="w-3 h-3 text-green-400" /> WhatsApp
+            </p>
+            <p class="text-lg font-bold text-white">
+              {user.whatsapp ? `+${user.whatsapp}` : "No configurado"}
+            </p>
+          </div>
         </div>
       </section>
     </div>

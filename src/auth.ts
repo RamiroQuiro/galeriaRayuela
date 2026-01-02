@@ -17,7 +17,10 @@ export const lucia = new Lucia(adapter, {
 			username: attributes.username,
             tenantId: attributes.tenantId,
             isAdmin: attributes.isAdmin,
-            isVendor: attributes.isVendor
+            isVendor: attributes.isVendor,
+            bio: attributes.bio,
+            location: attributes.location,
+            whatsapp: attributes.whatsapp
 		};
 	}
 });
@@ -34,4 +37,7 @@ interface DatabaseUserAttributes {
     tenantId: string;
     isAdmin: boolean;
     isVendor: boolean;
+    bio: string | null;
+    location: string | null;
+    whatsapp: string | null;
 }

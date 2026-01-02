@@ -13,44 +13,44 @@ export const GET: APIRoute = async ({ params }) => {
   }
 
   // Crear stream de Server-Sent Events
+  let intervalo: NodeJS.Timeout;
+
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
 
-      // Función para enviar datos al cliente
       const enviarActualizacion = async () => {
         try {
-          // Obtener las últimas imágenes del evento
           const ultimasImagenes = await db
             .select()
             .from(images)
             .where(eq(images.eventId, eventoId))
             .orderBy(desc(images.createdAt))
-            .limit(10) // Últimas 10 imágenes
+            .limit(10)
             .all();
 
-          // Enviar datos en formato SSE
           const data = JSON.stringify({
             imagenes: ultimasImagenes,
             timestamp: new Date().toISOString(),
           });
 
+          // Solo encolar si el controlador está abierto
           controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-        } catch (error) {
-          console.error("Error al obtener imágenes:", error);
+        } catch (error: any) {
+          // Si el stream se cerró, dejamos de intentar
+          if (error.name === 'TypeError' && error.message.includes('closed')) {
+            clearInterval(intervalo);
+          } else {
+            console.error("Error al obtener imágenes:", error);
+          }
         }
       };
 
-      // Enviar actualización inicial
       await enviarActualizacion();
-
-      // Configurar polling cada 5 segundos
-      const intervalo = setInterval(enviarActualizacion, 5000);
-
-      // Limpiar cuando el cliente se desconecta
-      return () => {
-        clearInterval(intervalo);
-      };
+      intervalo = setInterval(enviarActualizacion, 5000);
+    },
+    cancel() {
+      if (intervalo) clearInterval(intervalo);
     },
   });
 

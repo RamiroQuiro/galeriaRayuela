@@ -28,29 +28,146 @@ const myServices = await db
         <h1
           class="text-4xl font-bold bg-clip-text text-transparent bg-linear-to-r from-neon-purple to-neon-pink"
         >
-          Mis Servicios
+          Panel de Vendedor
         </h1>
         <p class="text-gray-400 mt-2">
-          Gestiona los servicios que ofreces en el Marketplace.
+          Gestiona tu presencia profesional y servicios en el Marketplace.
         </p>
       </div>
-      <a href="/services/create" class="glass-button flex items-center gap-2">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 4v16m8-8H4"></path>
-        </svg>
-        Nuevo Servicio
-      </a>
+      <div class="flex gap-4">
+        <a href="/services/create" class="glass-button flex items-center gap-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"></path>
+          </svg>
+          Nuevo Servicio
+        </a>
+      </div>
     </div>
+
+    {/* Editor de Perfil */}
+    <div class="mb-16">
+      <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+        <div
+          class="w-2 h-2 rounded-full bg-neon-purple shadow-[0_0_10px_rgba(188,19,254,0.8)]"
+        >
+        </div>
+        Tu Perfil Profesional
+      </h2>
+
+      <form
+        id="profileForm"
+        class="glass-card p-8 border-white/5 bg-midnight-900/40"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="space-y-6">
+            <div>
+              <label
+                class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2"
+                >Biografía Profesional</label
+              >
+              <textarea
+                name="bio"
+                rows="4"
+                class="glass-input w-full resize-none text-sm"
+                placeholder="Cuéntanos sobre tu experiencia y lo que ofreces..."
+                >{user.bio || ""}</textarea
+              >
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label
+                  class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2"
+                  >Ubicación</label
+                >
+                <input
+                  type="text"
+                  name="location"
+                  class="glass-input w-full text-sm"
+                  placeholder="ej. Buenos Aires, Argentina"
+                  value={user.location || ""}
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2"
+                  >WhatsApp</label
+                >
+                <input
+                  type="text"
+                  name="whatsapp"
+                  class="glass-input w-full text-sm"
+                  placeholder="ej. 54911..."
+                  value={user.whatsapp || ""}
+                />
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <button
+                type="submit"
+                class="w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 group"
+              >
+                Guardar Cambios de Perfil
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-4 h-4 group-hover:scale-110 transition-transform"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      const profileForm = document.getElementById(
+        "profileForm"
+      ) as HTMLFormElement;
+      profileForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(profileForm);
+        const data = Object.fromEntries(formData);
+
+        try {
+          const res = await fetch("/api/users/profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (res.ok) {
+            alert("Perfil actualizado correctamente");
+          } else {
+            alert("Error al actualizar el perfil");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Ocurrió un error inesperado");
+        }
+      });
+    </script>
 
     {
       myServices.length === 0 ? (
@@ -87,9 +204,9 @@ const myServices = await db
           {myServices.map((service) => (
             <div class="glass-card group flex flex-col h-full relative overflow-hidden">
               <div class="h-48 bg-gray-800 relative">
-                {service.images && service.images.length > 0 ? (
+                {Array.isArray(service.images) && service.images.length > 0 ? (
                   <img
-                    src={JSON.parse(service.images as string)[0]}
+                    src={(service.images as string[])[0]}
                     alt={service.name}
                     class="w-full h-full object-cover"
                   />

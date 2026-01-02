@@ -20,6 +20,8 @@ const allServices = await db
   .where(eq(services.isActive, true))
   .all();
 
+return Astro.redirect("/404");
+
 // Agrupar categorías para filtros
 const categories = [
   ...new Set(allServices.map((s: any) => s.service.category)),
@@ -106,19 +108,25 @@ const categories = [
 
             <CardFooter className="flex-row items-center justify-between">
               <div>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">
+                <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest leading-none mb-1">
                   Desde
                 </p>
-                <p class="text-lg font-bold text-white">
+                <p class="text-xl font-black text-white tracking-tighter">
                   {s.service.currency} {s.service.price}
-                  <span class="text-[10px] text-gray-500 font-normal">
+                  <span class="text-[10px] text-gray-500 font-bold ml-1">
                     /{s.service.unit}
                   </span>
                 </p>
               </div>
-              <Button variant="primary" size="sm" className="px-4">
-                Saber más
-              </Button>
+              <a href={`/marketplace/vendedor/${s.vendor.id}`}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="px-5 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-neon-blue/20 hover:scale-105 active:scale-95 transition-all"
+                >
+                  Saber más
+                </Button>
+              </a>
             </CardFooter>
           </Card>
         ))
