@@ -35,27 +35,43 @@ const totalStorage = await db
   .get();
 
 // 2. Obtener lista detallada de usuarios con sus métricas
-import { aliasedTable } from "drizzle-orm";
-const u = aliasedTable(users, "u_outer");
+const rawUsers = await db.select().from(users).all();
 
-const usersList = await db
+// Obtener conteos de eventos por tenant
+const eventStats = await db
   .select({
-    id: u.id,
-    username: u.username,
-    email: u.email,
-    tenantId: u.tenantId,
-    planId: u.planId,
-    isAdmin: u.isAdmin,
-    isVendor: u.isVendor,
-    createdAt: u.createdAt,
-    // Correlación explícita usando el alias u_outer
-    eventCount: sql<number>`(SELECT COUNT(*) FROM ${events} e WHERE e.${events.tenantId} = ${u.tenantId})`,
-    activeEventCount: sql<number>`(SELECT COUNT(*) FROM ${events} e WHERE e.${events.tenantId} = ${u.tenantId} AND e.${events.estado} = 'activo')`,
-    photoCount: sql<number>`(SELECT COUNT(i.${images.id}) FROM ${images} i JOIN ${events} e ON i.${images.eventId} = e.${events.id} WHERE e.${events.tenantId} = ${u.tenantId})`,
-    storageUsed: sql<number>`(SELECT COALESCE(SUM(i.${images.tamanioBytes}), 0) FROM ${images} i JOIN ${events} e ON i.${images.eventId} = e.${events.id} WHERE e.${events.tenantId} = ${u.tenantId})`,
+    tenantId: events.tenantId,
+    eventCount: count(events.id),
+    activeCount: sql<number>`SUM(CASE WHEN ${events.estado} = 'activo' THEN 1 ELSE 0 END)`,
   })
-  .from(u)
+  .from(events)
+  .groupBy(events.tenantId)
   .all();
+
+// Obtener conteos de fotos y almacenamiento por tenant
+const photoStats = await db
+  .select({
+    tenantId: events.tenantId,
+    photoCount: count(images.id),
+    storageUsed: sum(images.tamanioBytes),
+  })
+  .from(images)
+  .innerJoin(events, eq(images.eventId, events.id))
+  .groupBy(events.tenantId)
+  .all();
+
+// Merge de datos en JS (más seguro contra problemas de correlación SQL)
+const usersList = rawUsers.map((u) => {
+  const eStat = eventStats.find((s) => s.tenantId === u.tenantId);
+  const pStat = photoStats.find((s) => s.tenantId === u.tenantId);
+  return {
+    ...u,
+    eventCount: eStat?.eventCount || 0,
+    activeEventCount: eStat?.activeCount || 0,
+    photoCount: pStat?.photoCount || 0,
+    storageUsed: Number(pStat?.storageUsed || 0),
+  };
+});
 
 // Formatear bytes a algo legible
 const formatBytes = (bytes: number) => {
