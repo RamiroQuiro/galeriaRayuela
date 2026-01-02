@@ -17,6 +17,10 @@
   --color-midnight-900: #0f172a;
   --color-midnight-950: #020617;
 
+  /* texto */
+  --color-text: #BABBBB;
+  --color-text-title: #181818;
+
   /* Neon Accents */
   --color-neon-blue: #3b82f6;
   --color-neon-purple: #8b5cf6;

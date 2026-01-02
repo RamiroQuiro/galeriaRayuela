@@ -1,5 +1,5 @@
 ---
-import Layout from "../../layouts/Layout.astro";
+import GalleryLayout from "../../layouts/GalleryLayout.astro";
 import { db } from "../../db";
 import { events, images } from "../../db/schemas";
 import { eq, desc } from "drizzle-orm";
@@ -30,7 +30,7 @@ const eventImages = await db
   .all();
 ---
 
-<Layout title={event.name}>
+<GalleryLayout title={event.name}>
   <div class="bg-gray-900 text-white relative overflow-hidden">
     {/* Header Minimalista (Efecto Glass profundo) */}
     <div
@@ -121,7 +121,7 @@ const eventImages = await db
       imagenesIniciales={eventImages}
     />
   </div>
-</Layout>
+</GalleryLayout>
 
 <style>
   /* Ocultar barra de scroll para look más limpio en proyección */

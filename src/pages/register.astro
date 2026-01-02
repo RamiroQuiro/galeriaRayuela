@@ -1,54 +1,76 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Button from "../components/ui/Button.astro";
+import Input from "../components/ui/Input.astro";
+import Layout from "../layouts/Layout.astro";
 if (Astro.locals.user) {
-  return Astro.redirect('/');
+  return Astro.redirect("/");
 }
 ---
 
 <Layout>
-  <div class="flex min-h-screen items-center justify-center bg-gray-100">
+  <div
+    class="flex min-h-screen text-text items-center justify-center bg-gray-100"
+  >
     <div class="w-full max-w-md bg-white p-8 rounded shadow">
-      <h1 class="text-2xl font-bold mb-4">Register</h1>
+      <h1 class="text-2xl text-text-title font-bold mb-4">Registrarse</h1>
       <form id="registerForm" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium">Username</label>
-          <input type="text" name="username" class="w-full border p-2 rounded" required />
+          <Input
+            label="Email"
+            type="email"
+            name="email"
+            required
+            placeholder="Email"
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium">Password</label>
-          <input type="password" name="password" class="w-full border p-2 rounded" required />
+          <Input
+            label="Contraseña"
+            type="password"
+            name="password"
+            required
+            placeholder="Contraseña"
+          />
         </div>
-        <button type="submit" class="w-full bg-green-600 text-white p-2 rounded">Register</button>
+        <div class="w-full flex items-center justify-end">
+          <Button
+            type="submit"
+            className="w-full bg-green-600 text-white p-2 rounded glass-button"
+            >Registrarse</Button
+          >
+        </div>
       </form>
       <p id="error" class="text-red-500 mt-2 hidden"></p>
       <div class="mt-4 text-center">
-        <a href="/login" class="text-blue-500 hover:underline">Already have an account? Login</a>
+        <a href="/login" class="text-blue-500 text-xs hover:underline"
+          >Ya tienes una cuenta? Iniciar sesión</a
+        >
       </div>
     </div>
   </div>
 
   <script>
-    const form = document.getElementById('registerForm') as HTMLFormElement;
-    const error = document.getElementById('error');
+    const form = document.getElementById("registerForm") as HTMLFormElement;
+    const error = document.getElementById("error");
 
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const formData = new FormData(form);
       const data = Object.fromEntries(formData);
 
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
       if (res.ok) {
-        window.location.href = '/dashboard';
+        window.location.href = "/dashboard";
       } else {
         const json = await res.json();
         if (error) {
-            error.textContent = json.message || 'Registration failed';
-            error.classList.remove('hidden');
+          error.textContent = json.message || "Registration failed";
+          error.classList.remove("hidden");
         }
       }
     });

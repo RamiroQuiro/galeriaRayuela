@@ -67,16 +67,31 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const planActual = await obtenerPlanActual(locals.user.id);
     const maxFotos = planActual?.maxFotosPorEvento || 50;
 
-    // Guardar imagen de portada si existe
-    let rutaImagenPortada: string | null = null;
+    // 1. Crear evento primero para obtener el ID
+    const nuevoEvento = await db
+      .insert(events)
+      .values({
+        name: nombre,
+        tenantId: locals.tenantId || "default",
+        codigoAcceso: codigoAcceso,
+        maxFotos: maxFotos, // Límite según plan del usuario
+        estado: "activo",
+        imagenPortada: null, // Se actualizará después si hay imagen
+      })
+      .returning()
+      .get();
 
+    // 2. Guardar imagen de portada si existe - Nueva Estructura
     if (imagenPortada && imagenPortada.size > 0) {
       const directorioSubida = path.join(
         process.cwd(),
-        "public",
+        "storage",
         "uploads",
-        "portadas"
+        nuevoEvento.tenantId,
+        nuevoEvento.id.toString(),
+        "portada"
       );
+      
       try {
         await fs.access(directorioSubida);
       } catch {
@@ -89,22 +104,18 @@ export const POST: APIRoute = async ({ request, locals }) => {
       const rutaArchivo = path.join(directorioSubida, nombreArchivo);
 
       await fs.writeFile(rutaArchivo, Buffer.from(buffer));
-      rutaImagenPortada = `/uploads/portadas/${nombreArchivo}`;
+      
+      // URL virtual para el endpoint [...path].ts
+      const virtualPath = `/uploads/${nuevoEvento.tenantId}/${nuevoEvento.id}/portada/${nombreArchivo}`;
+      
+      // 3. Actualizar el evento con la ruta de la portada
+      await db
+        .update(events)
+        .set({ imagenPortada: virtualPath })
+        .where(eq(events.id, nuevoEvento.id));
+        
+      nuevoEvento.imagenPortada = virtualPath;
     }
-
-    // Crear evento con los nuevos campos
-    const nuevoEvento = await db
-      .insert(events)
-      .values({
-        name: nombre,
-        tenantId: locals.tenantId || "default",
-        codigoAcceso: codigoAcceso,
-        maxFotos: maxFotos, // Límite según plan del usuario
-        estado: "activo",
-        imagenPortada: rutaImagenPortada,
-      })
-      .returning()
-      .get();
 
     return createResponse(201, "Evento creado exitosamente", {
       evento: nuevoEvento,

@@ -1,55 +1,87 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Button from "../components/ui/Button.astro";
+import Input from "../components/ui/Input.astro";
+import Layout from "../layouts/Layout.astro";
 if (Astro.locals.user) {
-  return Astro.redirect('/');
+  return Astro.redirect("/");
 }
 ---
 
-<Layout>
-  <div class="flex min-h-screen items-center justify-center bg-gray-100">
+<Layout title="Login | Galeria Rayuela">
+  <div
+    class="flex min-h-screen items-center justify-center bg-gray-100 text-primary"
+  >
     <div class="w-full max-w-md bg-white p-8 rounded shadow">
-      <h1 class="text-2xl font-bold mb-4">Login</h1>
+      <h1 class="text-2xl text-text-title font-bold mb-4">Ingresar</h1>
       <form id="loginForm" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium">Username</label>
-          <input type="text" name="username" class="w-full border p-2 rounded" required />
+          <Input
+            placeholder="Usuario"
+            label="Usuario"
+            className="border border-text"
+            type="text"
+            name="username"
+            required
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium">Password</label>
-          <input type="password" name="password" class="w-full border p-2 rounded" required />
+          <Input
+            placeholder="Contraseña"
+            label="Contraseña"
+            className="border border-text"
+            type="password"
+            name="password"
+            required
+          />
         </div>
-        <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded">Login</button>
+        <div class="w-full flex ice items-center justify-end">
+          <Button
+            type="submit"
+            class="w-full bg-blue-600 text-white p-2 rounded">Login</Button
+          >
+        </div>
       </form>
       <p id="error" class="text-red-500 mt-2 hidden"></p>
-      <div class="mt-4 text-center">
-        <a href="/register" class="text-blue-500 hover:underline">Don't have an account? Register</a>
+      <div class="mt-2 text-center">
+        <a
+          href="/register"
+          class="text-blue-500 font-semibold text-xs hover:underline"
+          >No tienes cuenta? Registrate</a
+        >
+      </div>
+      <div class="mt-2 text-center">
+        <a
+          href="/contacto"
+          class="text-blue-500 font-semibold text-xs hover:underline"
+          >Necesitas ayuda?</a
+        >
       </div>
     </div>
   </div>
 
   <script>
-    const form = document.getElementById('loginForm') as HTMLFormElement;
-    const error = document.getElementById('error');
+    const form = document.getElementById("loginForm") as HTMLFormElement;
+    const error = document.getElementById("error");
 
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const formData = new FormData(form);
       const data = Object.fromEntries(formData);
 
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
       if (res.ok) {
         const json = await res.json();
-        window.location.href = json.data?.redirect || '/dashboard';
+        window.location.href = json.data?.redirect || "/dashboard";
       } else {
         const json = await res.json();
         if (error) {
-            error.textContent = json.message || 'Login failed';
-            error.classList.remove('hidden');
+          error.textContent = json.message || "Login failed";
+          error.classList.remove("hidden");
         }
       }
     });

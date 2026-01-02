@@ -1,7 +1,7 @@
 ---
 import { db } from "../../../db";
 import { users, services, events } from "../../../db/schemas";
-import Layout from "../../../layouts/Layout.astro";
+import GalleryLayout from "../../../layouts/GalleryLayout.astro";
 import { eq, and, desc } from "drizzle-orm";
 import {
   Star,
@@ -55,7 +55,7 @@ const rating = vendor.rating || 4.8;
 const reviewsCount = Math.floor(Math.random() * 50) + 10;
 ---
 
-<Layout title={`Marketplace de ${vendor.username} | Rayuela`}>
+<GalleryLayout title={`Marketplace de ${vendor.username} | Rayuela`}>
   <div
     class="relative min-h-screen w-screen bg-midnight-950 flex flex-col items-center"
   >
@@ -184,7 +184,7 @@ const reviewsCount = Math.floor(Math.random() * 50) + 10;
       </footer>
     </div>
   </div>
-</Layout>
+</GalleryLayout>
 
 <style>
   .glass-card {

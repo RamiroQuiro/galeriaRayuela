@@ -77,8 +77,16 @@ export const POST: APIRoute = async ({ params, request }) => {
       );
     }
 
-    // Crear directorio de subida si no existe
-    const directorioSubida = path.join(process.cwd(), "public", "uploads");
+    // Crear directorio de subida si no existe - Nueva Estructura
+    const directorioSubida = path.join(
+      process.cwd(),
+      "storage",
+      "uploads",
+      evento.tenantId,
+      evento.id.toString(),
+      "galeria"
+    );
+    
     try {
       await fs.access(directorioSubida);
     } catch {
@@ -98,12 +106,12 @@ export const POST: APIRoute = async ({ params, request }) => {
 
       await fs.writeFile(rutaArchivo, Buffer.from(buffer));
 
-      // Guardar en base de datos
+      // Guardar en base de datos - URL virtual que servirá el endpoint [...path].ts
       const imagenGuardada = await db
         .insert(images)
         .values({
           eventId: evento.id,
-          path: `/uploads/${nombreArchivo}`,
+          path: `/uploads/${evento.tenantId}/${evento.id}/galeria/${nombreArchivo}`,
           nombreInvitado: nombreInvitado || null,
           tamanioBytes: buffer.byteLength,
         })

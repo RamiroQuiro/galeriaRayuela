@@ -10,6 +10,7 @@ interface Props {
 }
 
 import { ArrowLeft, LogOut } from "lucide-astro";
+import Button from "../components/ui/Button.astro";
 
 const { title = "Galeria Rayuela" } = Astro.props;
 const user = Astro.locals.user;
@@ -18,8 +19,6 @@ const showBackButton =
   currentPath !== "/" &&
   currentPath !== "/dashboard" &&
   currentPath !== "/admin";
-
-const isGaleriaEnVivo = currentPath.startsWith("/events/");
 ---
 
 <!doctype html>
@@ -38,39 +37,39 @@ const isGaleriaEnVivo = currentPath.startsWith("/events/");
     />
   </head>
   <body
-    class="bg-midnight-950 min-h-screen selection:bg-neon-purple/30 selection:text-white overflow-x-hidden"
+    class="bg-midnight-950 min-h-screen selection:bg-neon-purple/30 text-text selection:text-white overflow-x-hidden"
   >
     <!-- Navbar / Global Actions -->
     <header
       class="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center pointer-events-none"
     >
-      {
-        !isGaleriaEnVivo && (
-          <div class="pointer-events-auto">
-            {showBackButton && (
-              <button
-                onclick="history.back()"
-                class="glass px-4 py-2 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2"
-              >
-                <ArrowLeft class="h-4 w-4" />
-                VOLVER
-              </button>
-            )}
-          </div>
-        )
-      }
+      <div class="pointer-events-auto">
+        {
+          showBackButton && (
+            <Button
+              variant="ghost"
+              onclick="history.back()"
+              class="glass px-4 py-2 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2"
+            >
+              <ArrowLeft class="h-4 w-4" />
+              volver
+            </Button>
+          )
+        }
+      </div>
 
       <div class="pointer-events-auto">
         {
           user && (
             <form action="/api/auth/logout" method="POST">
-              <button
+              <Button
                 type="submit"
-                class="glass px-4 py-2 rounded-lg text-xs font-bold text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-all flex items-center gap-2 group"
+                variant="ghost"
+                className="glass px-4 py-2 rounded-lg text-xs font-bold text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-all flex items-center gap-2 group"
               >
                 <LogOut class="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-                SALIR
-              </button>
+                salir
+              </Button>
             </form>
           )
         }

@@ -12,7 +12,7 @@ interface Props {
 const { className } = Astro.props;
 ---
 
-<div class={cn("glass-card overflow-hidden flex flex-col", className)}>
+<div class={cn("glass-card h-fit overflow-hidden flex flex-col", className)}>
   <slot />
 </div>
 

@@ -19,6 +19,7 @@ pnpm-debug.log*
 
 # sqlite database
 sqlite.db
+storage/
 
 
 
