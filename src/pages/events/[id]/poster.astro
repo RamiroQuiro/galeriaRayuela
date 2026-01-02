@@ -1,0 +1,313 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import { db } from "../../../db";
+import { events } from "../../../db/schemas";
+import { eq } from "drizzle-orm";
+import QRCode from "qrcode";
+import { Printer, Download, Share2, Eye } from "lucide-astro";
+import Button from "../../../components/ui/Button.astro";
+
+const { id } = Astro.params;
+
+if (!id) return Astro.redirect("/dashboard");
+
+const event = await db.query.events.findFirst({
+  where: eq(events.id, id),
+});
+
+if (!event) return Astro.redirect("/dashboard");
+
+// 1. QR para la Galería Pública
+const publicUrl = `${Astro.url.origin}/events/${id}`;
+const galleryQrUri = await QRCode.toDataURL(publicUrl, {
+  width: 600,
+  margin: 2,
+  color: { dark: "#0f172a", light: "#ffffff" },
+});
+
+// 2. QR para Subir Fotos (Formulario)
+const uploadUrl = `${Astro.url.origin}/eventos/${event.codigoAcceso}/subir`;
+const uploadQrUri = await QRCode.toDataURL(uploadUrl, {
+  width: 600,
+  margin: 2,
+  color: { dark: "#0f172a", light: "#ffffff" },
+});
+---
+
+<Layout title={`Cartel QR - ${event.name}`}>
+  <div class="max-w-4xl mx-auto pt-24 pb-12 px-6 no-print">
+    <div
+      class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8"
+    >
+      <div>
+        <h1 class="text-3xl font-bold text-white mb-2">
+          Cartelería del Evento
+        </h1>
+        <p class="text-gray-400 text-sm">
+          Elige el formato ideal para tu cartel.
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <Button variant="secondary" onclick="window.print()">
+          <Printer class="h-4 w-4 mr-2" />
+          Imprimir
+        </Button>
+        <div class="flex bg-white/5 p-1 rounded-xl border border-white/10">
+          <button
+            class="px-4 py-2 rounded-lg text-xs font-bold transition-all hover:bg-white/5 active-layout:[&[data-layout='dual']]:bg-neon-blue active-layout:[&[data-layout='dual']]:text-white data-[active=true]:bg-neon-blue/20 data-[active=true]:text-neon-blue layout-btn"
+            data-layout="dual"
+            data-active="true"
+          >
+            DOBLE
+          </button>
+          <button
+            class="px-4 py-2 rounded-lg text-xs font-bold transition-all hover:bg-white/5 layout-btn"
+            data-layout="gallery"
+            data-active="false"
+          >
+            GALERÍA
+          </button>
+          <button
+            class="px-4 py-2 rounded-lg text-xs font-bold transition-all hover:bg-white/5 layout-btn"
+            data-layout="upload"
+            data-active="false"
+          >
+            SUBIR
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="print-container flex justify-center p-4 md:p-12 bg-gray-100/5 min-h-[80vh]"
+  >
+    <div
+      id="poster-area"
+      class="bg-white w-[210mm] min-h-[297mm] shadow-2xl relative flex flex-col items-center text-center p-[15mm] font-display text-slate-900 overflow-hidden"
+    >
+      <div
+        class="absolute top-0 inset-x-0 h-4 bg-linear-to-r from-neon-blue via-neon-purple to-neon-pink"
+      >
+      </div>
+
+      <div class="mt-8 mb-12">
+        <div class="poster-header-text">
+          <h2
+            class="text-5xl font-black tracking-tighter text-slate-900 uppercase mb-4"
+          >
+            ¡MIRA Y COMPARTE!
+          </h2>
+          <div class="inline-block px-8 py-3 bg-slate-900 rounded-full">
+            <p
+              class="text-3xl font-bold text-white uppercase italic tracking-widest"
+            >
+              {event.name}
+            </p>
+          </div>
+        </div>
+
+        <div class="poster-header-gallery">
+          <h2
+            class="text-6xl font-black tracking-tighter text-slate-900 uppercase mb-4"
+          >
+            ¡MIRA LAS FOTOS!
+          </h2>
+          <p class="text-2xl text-slate-500 font-medium mb-6">
+            Escanea para entrar a la galería de
+          </p>
+          <div class="inline-block px-8 py-4 bg-neon-blue rounded-full">
+            <p
+              class="text-4xl font-bold text-white uppercase italic tracking-widest"
+            >
+              {event.name}
+            </p>
+          </div>
+        </div>
+
+        <div class="poster-header-upload">
+          <h2
+            class="text-6xl font-black tracking-tighter text-slate-900 uppercase mb-4"
+          >
+            ¡SUBE TUS FOTOS!
+          </h2>
+          <p class="text-2xl text-slate-500 font-medium mb-6">
+            Comparte tus mejores momentos en
+          </p>
+          <div class="inline-block px-8 py-4 bg-neon-purple rounded-full">
+            <p
+              class="text-4xl font-bold text-white uppercase italic tracking-widest"
+            >
+              {event.name}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dual QR Grid / Container -->
+      <div class="qr-container flex gap-10 w-full justify-center mb-12">
+        <!-- QR 1: Galería -->
+        <div class="qr-gallery w-fit flex flex-col items-center gap-4 group">
+          <div
+            class="qr-card relative p-6 bg-slate-50 rounded-4xl border-4 border-slate-100 shadow-sm transition-transform group-hover:scale-105"
+          >
+            <img
+              src={galleryQrUri}
+              alt="QR Galería"
+              class="w-[75mm] h-[75mm] object-contain"
+            />
+            <div
+              class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-2xl shadow-lg border-2 border-slate-100"
+            >
+              <Eye class="h-8 w-8 text-neon-blue" />
+            </div>
+          </div>
+          <div>
+            <p
+              class="text-2xl font-black text-slate-900 uppercase tracking-tight"
+            >
+              Ver Galería
+            </p>
+            <p class="text-sm text-slate-500 font-bold">
+              Escanea para mirar las fotos
+            </p>
+          </div>
+        </div>
+
+        <!-- QR 2: Subida -->
+        <div class="qr-upload w-fit flex flex-col items-center gap-4 group">
+          <div
+            class="qr-card relative p-6 bg-slate-50 rounded-4xl border-4 border-slate-100 shadow-sm transition-transform group-hover:scale-105"
+          >
+            <img
+              src={uploadQrUri}
+              alt="QR Subida"
+              class="w-[75mm] h-[75mm] object-contain"
+            />
+            <div
+              class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-2xl shadow-lg border-2 border-slate-100"
+            >
+              <Share2 class="h-8 w-8 text-neon-purple" />
+            </div>
+          </div>
+          <div>
+            <p
+              class="text-2xl font-black text-slate-900 uppercase tracking-tight"
+            >
+              Subir Fotos
+            </p>
+            <p class="text-sm text-slate-500 font-bold">
+              Comparte tus momentos
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      <div
+        class="mb-12 max-w-md bg-slate-50 p-6 rounded-3xl border border-slate-100"
+      >
+        <p class="text-slate-600 font-medium leading-relaxed">
+          ¡Usa la cámara de tu celular para escanear el código QR! No necesitas
+          descargar ninguna app.
+        </p>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="mt-auto border-t-2 border-slate-100 pt-12 w-full">
+        <p
+          class="text-xl text-slate-400 font-bold tracking-widest uppercase mb-4"
+        >
+          creado por
+        </p>
+        <h3 class="text-4xl font-black tracking-tighter text-slate-900">
+          GALERIA<span class="text-neon-purple">RAYUELA360</span>.com
+        </h3>
+      </div>
+
+      <div
+        class="absolute bottom-[-50px] right-[-50px] w-48 h-48 bg-neon-blue/5 rounded-full blur-3xl"
+      >
+      </div>
+      <div
+        class="absolute top-[-50px] left-[-50px] w-48 h-48 bg-neon-purple/5 rounded-full blur-3xl"
+      >
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style is:global>
+  body[data-layout="gallery"] .qr-upload {
+    display: none !important;
+  }
+  body[data-layout="upload"] .qr-gallery {
+    display: none !important;
+  }
+
+  body[data-layout="gallery"] .poster-header-text,
+  body[data-layout="upload"] .poster-header-text {
+    display: none !important;
+  }
+
+  body[data-layout="gallery"] .poster-header-gallery,
+  body[data-layout="upload"] .poster-header-upload {
+    display: block !important;
+  }
+
+  .poster-header-gallery,
+  .poster-header-upload {
+    display: none;
+  }
+
+  body[data-layout="gallery"] .qr-container,
+  body[data-layout="upload"] .qr-container {
+    padding: 0 20mm !important;
+  }
+
+  body[data-layout="gallery"] .qr-card img,
+  body[data-layout="upload"] .qr-card img {
+    width: 155mm !important;
+    height: 155mm !important;
+  }
+
+  .layout-btn[data-active="true"] {
+    background: rgba(0, 102, 255, 0.2) !important;
+    color: #0066ff !important;
+    border: 1px solid rgba(0, 102, 255, 0.3);
+  }
+</style>
+
+<script>
+  const btns = document.querySelectorAll(".layout-btn");
+  btns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      btns.forEach((b) => b.setAttribute("data-active", "false"));
+      btn.setAttribute("data-active", "true");
+      const layout = btn.getAttribute("data-layout");
+      document.body.setAttribute("data-layout", layout || "dual");
+    });
+  });
+</script>
+
+<style>
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    body {
+      background: white !important;
+    }
+    .print-container {
+      background: transparent !important;
+      padding: 0 !important;
+      display: block !important;
+    }
+    #poster-area {
+      box-shadow: none !important;
+      width: 100% !important;
+      height: 100vh !important;
+      border: none !important;
+    }
+  }
+</style>

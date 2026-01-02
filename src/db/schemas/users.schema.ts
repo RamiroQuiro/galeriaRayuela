@@ -22,6 +22,14 @@ export const users = sqliteTable("users", {
   // Suscripción activa
   suscripcionActivaId: integer("suscripcion_activa_id"),
 
+  // Perfil de Vendedor (Marketplace)
+  isAdmin: integer("is_admin", { mode: "boolean" }).default(false),
+  isVendor: integer("is_vendor", { mode: "boolean" }).default(false),
+  bio: text("bio"),
+  location: text("location"),
+  whatsapp: text("whatsapp"), // Contacto directo
+  rating: integer("rating").default(0),
+
   // Timestamps
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
 });

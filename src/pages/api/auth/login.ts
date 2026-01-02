@@ -27,8 +27,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     cookies.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
 
     return createResponse(200, 'Login successful', { 
-        user: { username: user.username, tenantId: user.tenantId },
-        redirect: '/dashboard'
+        user: { username: user.username, tenantId: user.tenantId, isAdmin: user.isAdmin },
+        redirect: user.isAdmin ? '/admin' : '/dashboard'
     });
   } catch (error) {
     console.error(error);

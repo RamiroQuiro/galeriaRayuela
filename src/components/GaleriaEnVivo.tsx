@@ -1,7 +1,19 @@
-import { useEffect, useState, useRef } from "react";
+import {
+  X,
+  Camera,
+  Printer,
+  Crop,
+  SlidersHorizontal,
+  Check,
+  Trash2,
+  Maximize2,
+  Image as ImageIcon,
+  Sparkles,
+} from "lucide-react";
 import type { Image } from "../db/schemas";
 import Cropper, { type ReactCropperElement } from "react-cropper";
 import "cropperjs/dist/cropper.css";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
   eventoId: number;
@@ -143,33 +155,53 @@ export function GaleriaEnVivo({ eventoId, imagenesIniciales }: Props) {
 
   if (imagenes.length === 0) {
     return (
-      <div className="col-span-full py-12 flex flex-col items-center justify-center text-gray-400 bg-white/5 rounded-xl border border-dashed border-gray-700">
-        <p className="text-lg text-gray-500">Esperando fotos...</p>
+      <div className="col-span-full py-32 flex flex-col items-center justify-center text-gray-400 bg-white/5 rounded-3xl border-2 border-dashed border-white/10">
+        <ImageIcon className="w-12 h-12 mb-4 opacity-20" />
+        <p className="text-xl font-bold text-white/50 uppercase tracking-[0.2em]">
+          Esperando fotos...
+        </p>
+        <p className="text-sm text-gray-500 mt-2">
+          ¡Sé el primero en compartir un momento!
+        </p>
       </div>
     );
   }
-
   return (
     <>
       {/* Grid de Galería Minimalista */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {imagenes.map((img, index) => (
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+        {imagenes.map((img) => (
           <div
             key={img.id}
-            className="group relative aspect-square bg-gray-800 rounded-lg overflow-hidden cursor-pointer"
+            className="group relative aspect-square bg-white/5 rounded-3xl overflow-hidden cursor-pointer border border-white/5 shadow-2xl transition-all duration-500 hover:scale-[1.03] hover:border-white/20 hover:shadow-neon-blue/20"
             onClick={() => abrirEditor(img)}
           >
             <img
               src={img.path}
               alt="Foto del evento"
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100"
+              className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700 opacity-80 group-hover:opacity-100"
               loading="lazy"
             />
+
+            {/* Hover Overlay */}
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center backdrop-blur-[2px]">
+              <div className="bg-white/10 p-4 rounded-2xl border border-white/20 backdrop-blur-md transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                <Maximize2 className="w-8 h-8 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+              </div>
+            </div>
+
             {img.nombreInvitado && (
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                <p className="text-white text-xs font-medium truncate text-center">
-                  {img.nombreInvitado}
-                </p>
+              <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md p-3 rounded-2xl border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full bg-linear-to-br from-neon-blue to-neon-purple p-[1px]">
+                    <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                      <ImageIcon className="w-2.5 h-2.5 text-white" />
+                    </div>
+                  </div>
+                  <p className="text-white text-[10px] font-black uppercase tracking-widest truncate">
+                    {img.nombreInvitado}
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -226,26 +258,19 @@ export function GaleriaEnVivo({ eventoId, imagenesIniciales }: Props) {
             </div>
 
             {/* Panel Lateral derecho */}
-            <div className="w-full md:w-80 bg-gray-800 border-l border-gray-700 p-6 flex flex-col gap-6 overflow-y-auto z-10">
-              <div className="flex justify-between items-center pb-4 border-b border-gray-700">
-                <h3 className="font-bold text-white tracking-wide">EDICIÓN</h3>
+            <div className="w-full md:w-80 bg-midnight-950/50 backdrop-blur-2xl border-l border-white/10 p-8 flex flex-col gap-8 overflow-y-auto z-10">
+              <div className="flex justify-between items-center pb-6 border-b border-white/5">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4 text-neon-blue" />
+                  <h3 className="font-black text-white text-xs tracking-[0.2em] uppercase">
+                    Edición
+                  </h3>
+                </div>
                 <button
                   onClick={cerrarEditor}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="p-2 hover:bg-white/5 rounded-xl text-gray-400 hover:text-white transition-all"
                 >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <X className="w-6 h-6" />
                 </button>
               </div>
 
@@ -254,38 +279,41 @@ export function GaleriaEnVivo({ eventoId, imagenesIniciales }: Props) {
                 {!modoRecorte ? (
                   <button
                     onClick={() => setModoRecorte(true)}
-                    className="w-full py-2 px-3 rounded text-sm font-bold uppercase tracking-wider transition-colors border bg-transparent border-gray-600 text-gray-300 hover:border-white hover:text-white"
+                    className="w-full py-3 px-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border border-white/10 bg-white/5 text-gray-300 hover:border-white/40 hover:text-white flex items-center justify-center gap-2"
                   >
-                    ✂️ Activar Recorte
+                    <Crop className="w-4 h-4" />
+                    Recortar
                   </button>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={confirmarRecorte}
-                      className="w-full py-2 px-3 rounded text-sm font-bold uppercase tracking-wider transition-colors bg-green-600 text-white hover:bg-green-700"
+                      className="w-full py-3 px-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all bg-neon-green text-black hover:brightness-110 flex items-center justify-center gap-2"
                     >
-                      ✅ Aplicar
+                      <Check className="w-4 h-4" />
+                      Aplicar
                     </button>
                     <button
                       onClick={() => setModoRecorte(false)}
-                      className="w-full py-2 px-3 rounded text-sm font-bold uppercase tracking-wider transition-colors bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      className="w-full py-3 px-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all bg-white/5 text-gray-300 hover:bg-white/10 flex items-center justify-center gap-2 border border-white/10"
                     >
-                      ❌ Cancelar
+                      <X className="w-4 h-4" />
+                      Mala mía
                     </button>
                   </div>
                 )}
                 {modoRecorte && (
-                  <p className="text-xs text-gray-500 mt-2 text-center">
-                    Mueve y ajusta el recuadro para seleccionar el área.
+                  <p className="text-[10px] text-gray-500 mt-3 text-center uppercase font-bold tracking-widest">
+                    Ajusta el área de recorte
                   </p>
                 )}
               </div>
 
               {/* Filtros - Solo visibles si NO estamos recortando */}
               {!modoRecorte && (
-                <div className="space-y-5 animate-fadeIn">
-                  <div className="flex items-center justify-between pb-2 border-b border-gray-700/50">
-                    <span className="text-xs font-bold text-gray-500 uppercase">
+                <div className="space-y-6 animate-fadeIn">
+                  <div className="flex items-center justify-between pb-2">
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
                       Ajustes de Color
                     </span>
                   </div>
@@ -293,7 +321,9 @@ export function GaleriaEnVivo({ eventoId, imagenesIniciales }: Props) {
                   <ControlSlider
                     label="BRILLO"
                     valor={filtros.brillo}
-                    setValor={(v) => setFiltros((f) => ({ ...f, brillo: v }))}
+                    setValor={(v) =>
+                      setFiltros((f: any) => ({ ...f, brillo: v }))
+                    }
                     min={0}
                     max={200}
                   />
@@ -301,7 +331,7 @@ export function GaleriaEnVivo({ eventoId, imagenesIniciales }: Props) {
                     label="CONTRASTE"
                     valor={filtros.contraste}
                     setValor={(v) =>
-                      setFiltros((f) => ({ ...f, contraste: v }))
+                      setFiltros((f: any) => ({ ...f, contraste: v }))
                     }
                     min={0}
                     max={200}
@@ -310,7 +340,7 @@ export function GaleriaEnVivo({ eventoId, imagenesIniciales }: Props) {
                     label="SATURACIÓN"
                     valor={filtros.saturacion}
                     setValor={(v) =>
-                      setFiltros((f) => ({ ...f, saturacion: v }))
+                      setFiltros((f: any) => ({ ...f, saturacion: v }))
                     }
                     min={0}
                     max={200}
@@ -318,24 +348,30 @@ export function GaleriaEnVivo({ eventoId, imagenesIniciales }: Props) {
                   <ControlSlider
                     label="SEPIA"
                     valor={filtros.sepia}
-                    setValor={(v) => setFiltros((f) => ({ ...f, sepia: v }))}
+                    setValor={(v) =>
+                      setFiltros((f: any) => ({ ...f, sepia: v }))
+                    }
                     min={0}
                     max={100}
                   />
 
                   <div className="flex items-center justify-between pt-2">
-                    <span className="text-xs font-bold text-gray-400">
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
                       BLANCO Y NEGRO
                     </span>
                     <button
-                      onClick={() => setFiltros((f) => ({ ...f, byn: !f.byn }))}
-                      className={`w-10 h-5 rounded-full transition-colors ${
-                        filtros.byn ? "bg-blue-500" : "bg-gray-600"
-                      } relative`}
+                      onClick={() =>
+                        setFiltros((f: any) => ({ ...f, byn: !f.byn }))
+                      }
+                      className={`w-12 h-6 rounded-full transition-all duration-300 ${
+                        filtros.byn
+                          ? "bg-neon-blue shadow-[0_0_15px_rgba(0,102,255,0.4)]"
+                          : "bg-white/10"
+                      } relative border border-white/5`}
                     >
-                      <span
-                        className={`absolute top-1 left-1 bg-white w-3 h-3 rounded-full transition-transform ${
-                          filtros.byn ? "translate-x-5" : ""
+                      <div
+                        className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-all duration-300 shadow-xl ${
+                          filtros.byn ? "translate-x-6 bg-white" : "bg-gray-500"
                         }`}
                       />
                     </button>
@@ -343,41 +379,30 @@ export function GaleriaEnVivo({ eventoId, imagenesIniciales }: Props) {
                 </div>
               )}
 
-              <div className="mt-auto space-y-3 pt-6 border-t border-gray-700">
+              <div className="mt-auto space-y-4 pt-8 border-t border-white/5">
                 {!modoRecorte && (
                   <button
                     onClick={() => setModoPolaroid(!modoPolaroid)}
-                    className={`w-full py-3 rounded-lg border-2 font-bold transition-all ${
+                    className={`w-full py-4 rounded-2xl border-2 font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 ${
                       modoPolaroid
-                        ? "border-blue-500 text-blue-400 bg-blue-500/10"
-                        : "border-gray-600 text-gray-400 hover:border-gray-500"
+                        ? "border-neon-purple text-neon-purple bg-neon-purple/10 shadow-[0_0_20px_rgba(188,19,254,0.15)]"
+                        : "border-white/10 text-gray-500 hover:border-white/20 hover:text-gray-300"
                     }`}
                   >
-                    {modoPolaroid ? "🎞️ MODO POLAROID ON" : "🎞️ MODO POLAROID"}
+                    <Camera className="w-5 h-5" />
+                    {modoPolaroid ? "Polaroid On" : "Polaroid"}
                   </button>
                 )}
 
                 <button
                   onClick={imprimirFoto}
                   disabled={modoRecorte}
-                  className={`w-full py-4 bg-linear-to-r from-green-600 to-teal-600 text-white rounded-lg font-bold hover:brightness-110 transition-all shadow-lg flex items-center justify-center gap-2 ${
-                    modoRecorte ? "opacity-50 cursor-not-allowed" : ""
+                  className={`w-full py-5 bg-linear-to-r from-neon-blue to-neon-purple text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:brightness-110 active:scale-95 transition-all shadow-[0_10px_30px_rgba(0,102,255,0.25)] flex items-center justify-center gap-3 ${
+                    modoRecorte ? "opacity-50 cursor-not-allowed grayscale" : ""
                   }`}
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                    />
-                  </svg>
-                  IMPRIMIR
+                  <Printer className="w-5 h-5" />
+                  Imprimir
                 </button>
               </div>
             </div>
@@ -402,11 +427,13 @@ const ControlSlider = ({
   max: number;
 }) => (
   <div>
-    <div className="flex justify-between mb-2">
-      <label className="text-xs font-bold text-gray-400 tracking-wider">
+    <div className="flex justify-between mb-3">
+      <label className="text-[10px] font-black text-white/40 tracking-[0.2em]">
         {label}
       </label>
-      <span className="text-xs text-gray-500 font-mono">{valor}%</span>
+      <span className="text-[10px] text-neon-blue font-black font-mono">
+        {valor}%
+      </span>
     </div>
     <input
       type="range"
@@ -414,7 +441,7 @@ const ControlSlider = ({
       max={max}
       value={valor}
       onChange={(e) => setValor(Number(e.target.value))}
-      className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400"
+      className="w-full h-1 bg-white/5 rounded-full appearance-none cursor-pointer accent-neon-blue hover:accent-white transition-all"
     />
   </div>
 );

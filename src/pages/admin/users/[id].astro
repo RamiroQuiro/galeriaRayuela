@@ -1,0 +1,349 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import { db } from "../../../db";
+import { users, events, images, services, planes } from "../../../db/schemas";
+import { eq, count, sum, sql } from "drizzle-orm";
+import {
+  ArrowLeft,
+  Calendar,
+  Database,
+  Eye,
+  Plus,
+  Trash,
+  Shield,
+  Briefcase,
+  TrendingUp,
+} from "lucide-astro";
+import Button from "../../../components/ui/Button.astro";
+import Card from "../../../components/ui/Card.astro";
+import CardHeader from "../../../components/ui/CardHeader.astro";
+import CardContent from "../../../components/ui/CardContent.astro";
+import CardFooter from "../../../components/ui/CardFooter.astro";
+import Input from "../../../components/ui/Input.astro";
+
+const userAdmin = Astro.locals.user;
+if (!userAdmin || !userAdmin.isAdmin) {
+  return Astro.redirect("/dashboard");
+}
+
+const { id } = Astro.params;
+
+if (!id) return Astro.redirect("/admin");
+
+// 1. Obtener datos del usuario
+const targetUser = await db.select().from(users).where(eq(users.id, id)).get();
+if (!targetUser) return Astro.redirect("/admin");
+
+// 2. Métricas del Usuario
+const userEvents = await db
+  .select()
+  .from(events)
+  .where(eq(events.tenantId, targetUser.tenantId))
+  .all();
+const activeEventsCount = userEvents.filter(
+  (e) => e.estado === "activo"
+).length;
+
+// Almacenamiento y Fotos
+const stats = await db
+  .select({
+    totalBytes: sum(images.tamanioBytes),
+    photoCount: count(images.id),
+  })
+  .from(images)
+  .innerJoin(events, eq(images.eventId, events.id))
+  .where(eq(events.tenantId, targetUser.tenantId))
+  .get();
+
+// Obtener límites del plan
+const userPlan = await db
+  .select()
+  .from(planes)
+  .where(eq(planes.id, targetUser.planId || "gratis"))
+  .get();
+
+// Servicios si es vendor
+const userServices = await db
+  .select()
+  .from(services)
+  .where(eq(services.tenantId, targetUser.tenantId))
+  .all();
+
+// Formatear bytes
+const formatBytes = (bytes: number) => {
+  if (!bytes || bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};
+
+// Estimación de límite de storage (basado en maxFotos * ~2MB si no hay campo explícito, o hardcoded por ahora)
+const storageLimitBytes =
+  (userPlan?.maxFotosPorEvento || 100) * 2 * 1024 * 1024;
+const storageUsedPercent = Math.min(
+  Math.round((Number(stats?.totalBytes || 0) / storageLimitBytes) * 100),
+  100
+);
+---
+
+<Layout title={`Admin | ${targetUser.username} | Rayuela 360`}>
+  <div class="container mx-auto p-4 max-w-7xl pt-10">
+    <div class="mb-8 flex items-center gap-4">
+      <a
+        href="/admin"
+        class="p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-all"
+      >
+        <ArrowLeft class="h-6 w-6" />
+      </a>
+      <h1 class="text-3xl font-bold text-white">Detalle de Usuario</h1>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+      <!-- Sidebar: Info Perfil -->
+      <div class="space-y-6">
+        <Card className="p-8 text-center">
+          <div
+            class="w-24 h-24 rounded-full bg-linear-to-br from-neon-blue to-neon-purple mx-auto mb-4 p-px"
+          >
+            <div
+              class="w-full h-full rounded-full bg-midnight-950 flex items-center justify-center text-3xl font-bold text-white uppercase"
+            >
+              {targetUser.username.charAt(0)}
+            </div>
+          </div>
+          <h2 class="text-2xl font-bold text-white mb-1">
+            {targetUser.username}
+          </h2>
+          <p class="text-gray-500 text-sm mb-6">{targetUser.email}</p>
+
+          <div class="flex justify-center gap-2 mb-8">
+            {
+              targetUser.isAdmin && (
+                <span class="bg-neon-purple/20 text-neon-purple px-3 py-1 rounded text-[10px] font-bold border border-neon-purple/50 flex items-center gap-1.5">
+                  <Shield class="h-3 w-3" />
+                  ADMIN
+                </span>
+              )
+            }
+            {
+              targetUser.isVendor && (
+                <span class="bg-neon-blue/20 text-neon-blue px-3 py-1 rounded text-[10px] font-bold border border-neon-blue/50 flex items-center gap-1.5">
+                  <Briefcase class="h-3 w-3" />
+                  VENDOR
+                </span>
+              )
+            }
+          </div>
+
+          <div class="space-y-4 text-left border-t border-white/5 pt-6">
+            <div class="flex justify-between text-sm">
+              <span
+                class="text-gray-500 font-bold uppercase text-[10px] tracking-widest"
+                >Tenant ID</span
+              >
+              <code class="text-white text-xs font-mono"
+                >{targetUser.tenantId}</code
+              >
+            </div>
+            <div class="flex justify-between text-sm">
+              <span
+                class="text-gray-500 font-bold uppercase text-[10px] tracking-widest"
+                >Plan Actual</span
+              >
+              <span class="text-neon-blue font-bold uppercase italic text-xs"
+                >{targetUser.planId || "Gratis"}</span
+              >
+            </div>
+            <div class="flex justify-between text-sm">
+              <span
+                class="text-gray-500 font-bold uppercase text-[10px] tracking-widest"
+                >Registro</span
+              >
+              <span class="text-gray-300 text-xs"
+                >{new Date(targetUser.createdAt!).toLocaleDateString()}</span
+              >
+            </div>
+          </div>
+        </Card>
+
+        <Card className="border-l-4 border-red-500/50">
+          <CardHeader>
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              <Trash class="h-5 w-5 text-red-500" />
+              Zona de Peligro
+            </h3>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button
+              variant="danger"
+              size="sm"
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <Shield class="h-4 w-4" />
+              Suspender Cuenta
+            </Button>
+            <Button variant="secondary" size="sm" className="w-full"
+              >Resetear Password</Button
+            >
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- Main Content: Metrics & Lists -->
+      <div class="lg:col-span-2 space-y-8">
+        <!-- Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="border-b-2 border-neon-blue">
+            <CardContent className="p-6 flex flex-col justify-center">
+              <div class="flex items-center gap-3 mb-3">
+                <Calendar class="h-4 w-4 text-neon-blue" />
+                <p
+                  class="text-[10px] text-gray-500 uppercase font-bold tracking-[0.2em]"
+                >
+                  Eventos
+                </p>
+              </div>
+              <p class="text-3xl font-bold text-white tracking-tighter">
+                <span class="text-neon-green">{activeEventsCount}</span>
+                <span class="text-gray-600"> / {userEvents.length}</span>
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-b-2 border-neon-purple">
+            <CardContent className="p-6 flex flex-col justify-center">
+              <div class="flex items-center gap-3 mb-3">
+                <TrendingUp class="h-4 w-4 text-neon-purple" />
+                <p
+                  class="text-[10px] text-gray-500 uppercase font-bold tracking-[0.2em]"
+                >
+                  Fotos Totales
+                </p>
+              </div>
+              <p class="text-3xl font-bold text-white tracking-tighter">
+                {stats?.photoCount || 0}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-b-2 border-neon-pink">
+            <CardContent className="p-6">
+              <div class="flex items-center gap-3 mb-3">
+                <Database class="h-4 w-4 text-neon-pink" />
+                <p
+                  class="text-[10px] text-gray-500 uppercase font-bold tracking-[0.2em]"
+                >
+                  Almacenamiento
+                </p>
+              </div>
+              <div class="flex items-end justify-between mb-2">
+                <p class="text-2xl font-bold text-white tracking-tighter">
+                  {formatBytes(Number(stats?.totalBytes || 0))}
+                </p>
+                <p class="text-[10px] text-gray-500 font-mono">
+                  Límite: {formatBytes(storageLimitBytes)}
+                </p>
+              </div>
+              <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  class={`h-full transition-all duration-1000 ${storageUsedPercent > 90 ? "bg-neon-pink" : storageUsedPercent > 70 ? "bg-yellow-500" : "bg-neon-blue"}`}
+                  style={`width: ${storageUsedPercent}%`}
+                >
+                </div>
+              </div>
+              <p class="text-[10px] text-right text-gray-500 mt-1">
+                {storageUsedPercent}% usado
+              </p>
+            </CardContent>
+          </Card>
+
+          <!-- Listado de Eventos -->
+          <Card>
+            <CardHeader>
+              <h3 class="text-xl font-bold text-white">Eventos del Cliente</h3>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {
+                userEvents.map((e) => (
+                  <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition-all group">
+                    <div>
+                      <h4 class="text-white font-bold group-hover:text-neon-blue transition-colors">
+                        {e.name}
+                      </h4>
+                      <div class="flex gap-4 mt-1">
+                        <p class="text-[10px] text-gray-500">
+                          Fecha:{" "}
+                          <span class="text-gray-300 font-mono italic">
+                            {e.fechaEvento || "Sin fecha"}
+                          </span>
+                        </p>
+                        <p class="text-[10px] text-gray-500">
+                          Código:{" "}
+                          <span class="text-neon-blue">{e.codigoAcceso}</span>
+                        </p>
+                        <p class="text-[10px] text-gray-500">
+                          Estado:{" "}
+                          <span
+                            class={
+                              e.estado === "activo"
+                                ? "text-neon-green"
+                                : "text-gray-400"
+                            }
+                          >
+                            {e.estado}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-2 h-auto"
+                      title="Ver Evento"
+                    >
+                      <Eye class="h-5 w-5" />
+                    </Button>
+                  </div>
+                ))
+              }
+              {
+                userEvents.length === 0 && (
+                  <p class="text-gray-500 text-center py-4">
+                    Este usuario no tiene eventos creados.
+                  </p>
+                )
+              }
+            </CardContent>
+          </Card>
+
+          <!-- Listado de Servicios (Si aplica) -->
+          {
+            targetUser.isVendor && (
+              <Card>
+                <CardHeader>
+                  <h3 class="text-xl font-bold text-white">
+                    Servicios Publicados
+                  </h3>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {userServices.map((s: any) => (
+                    <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                      <h4 class="text-white font-bold">{s.name}</h4>
+                      <p class="text-neon-blue font-bold text-sm mt-1">
+                        {s.currency} {s.price}
+                      </p>
+                      <p class="text-[10px] text-gray-500 mt-2 line-clamp-1">
+                        {s.description}
+                      </p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

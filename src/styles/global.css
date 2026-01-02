@@ -1,1 +1,55 @@
 @import "tailwindcss";
+
+@theme {
+  --font-display: "Outfit", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  /* Midnight Palette - Dark Blue/Slate base */
+  --color-midnight-50: #f8fafc;
+  --color-midnight-100: #f1f5f9;
+  --color-midnight-200: #e2e8f0;
+  --color-midnight-300: #cbd5e1;
+  --color-midnight-400: #94a3b8;
+  --color-midnight-500: #64748b;
+  --color-midnight-600: #475569;
+  --color-midnight-700: #334155;
+  --color-midnight-800: #1e293b;
+  --color-midnight-900: #0f172a;
+  --color-midnight-950: #020617;
+
+  /* Neon Accents */
+  --color-neon-blue: #3b82f6;
+  --color-neon-purple: #8b5cf6;
+  --color-neon-pink: #ec4899;
+  --color-neon-green: #10b981;
+}
+
+@utility glass {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl;
+}
+
+@utility glass-card {
+  @apply glass rounded-2xl hover:bg-white/10 transition-all duration-300;
+}
+
+@utility glass-button {
+  @apply bg-gradient-to-r from-neon-blue to-neon-purple text-white font-semibold py-2 px-6 rounded-lg shadow-lg hover:shadow-neon-blue/50 hover:scale-105 transition-all duration-300;
+}
+
+@utility glass-input {
+  @apply bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple transition-all;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display tracking-tight text-white;
+  }
+  body {
+    @apply font-body text-gray-300;
+  }
+}

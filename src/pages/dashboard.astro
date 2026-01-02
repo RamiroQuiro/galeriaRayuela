@@ -1,8 +1,23 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { db } from "../db";
-import { events } from "../db/schemas";
-import { desc, eq } from "drizzle-orm";
+import { events, services } from "../db/schemas";
+import { desc, eq, count } from "drizzle-orm";
+import {
+  LayoutDashboard,
+  Store,
+  Plus,
+  Printer,
+  Eye,
+  Calendar,
+  Trash,
+  ArrowRight,
+} from "lucide-astro";
+import Button from "../components/ui/Button.astro";
+import Card from "../components/ui/Card.astro";
+import CardHeader from "../components/ui/CardHeader.astro";
+import CardContent from "../components/ui/CardContent.astro";
+import CardFooter from "../components/ui/CardFooter.astro";
 import { obtenerPlanActual } from "../services/suscripcionService";
 
 const user = Astro.locals.user;
@@ -21,211 +36,369 @@ const myEvents = await db
   .where(eq(events.tenantId, user.tenantId))
   .orderBy(desc(events.createdAt))
   .all();
+
+const activeEventsCount = (
+  await db
+    .select({ count: count() })
+    .from(events)
+    .where(eq(events.tenantId, user.tenantId))
+    .all()
+)[0].count;
 ---
 
-<Layout title="Dashboard">
-  <div class="container mx-auto p-4 max-w-6xl">
-    <div class="flex justify-between items-center mb-8 py-4 border-b">
-      <h1 class="text-3xl font-bold text-gray-800">Dashboard</h1>
-      <div class="flex items-center gap-4">
-        <span class="text-sm font-medium">Hola, {user.username}</span>
-        <form action="/api/auth/logout" method="POST" class="inline">
-          <button
-            type="submit"
-            class="text-sm text-red-600 hover:text-red-800 font-medium"
-            >Cerrar Sesión</button
-          >
-        </form>
+<Layout title="Dashboard | Galeria Rayuela">
+  <div class="container mx-auto p-4 max-w-7xl pt-10">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-12">
+      <div>
+        <h1 class="text-4xl font-bold text-white mb-2 flex items-center gap-3">
+          <LayoutDashboard class="h-8 w-8 text-neon-blue" />
+          ¡Hola, <span class="text-neon-blue">{user.username}</span>!
+        </h1>
+        <p class="text-gray-400">Bienvenido a tu centro de control.</p>
       </div>
-    </div>
-
-    <!-- Plan Actual Card -->
-    <div
-      class="bg-linear-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white mb-8 shadow-lg"
-    >
-      <div
-        class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
-      >
-        <div>
-          <h3 class="text-lg font-semibold opacity-90">Plan Actual</h3>
-          <p class="text-3xl font-bold mt-1">
-            {planActual?.nombre || "Plan Gratis"}
-          </p>
-          <div class="mt-3 flex items-center gap-4 text-sm">
-            <div>
-              <span class="opacity-75">Eventos:</span>
-              <span class="font-bold ml-1"
-                >{myEvents.length} / {planActual?.maxEventos || 1}</span
-              >
-            </div>
-            <div>
-              <span class="opacity-75">Fotos por evento:</span>
-              <span class="font-bold ml-1"
-                >{planActual?.maxFotosPorEvento || 30}</span
-              >
-            </div>
-          </div>
-        </div>
-        <a
-          href="/planes"
-          class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors shadow-md"
-        >
-          {planActual?.id === "gratis" ? "⭐ Mejorar Plan" : "📊 Ver Planes"}
+      <div class="flex gap-4">
+        <a href="/marketplace">
+          <Button
+            variant="secondary"
+            size="md"
+            className="flex items-center gap-2"
+          >
+            <Store class="h-4 w-4" />
+            Ver Marketplace
+          </Button>
         </a>
       </div>
     </div>
 
-    <div class="mb-6 flex justify-between items-end">
-      <h2 class="text-2xl font-bold text-gray-800">Mis Eventos</h2>
-      <a
-        href="/events/create"
-        class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
-        >Crear Nuevo Evento</a
-      >
-    </div>
+    <!-- Stats / Plan Card -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+      <div class="glass-card p-6 relative overflow-hidden group">
+        <div
+          class="absolute inset-0 bg-linear-to-br from-neon-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        >
+        </div>
+        <h3
+          class="text-xs font-bold text-gray-500 uppercase tracking-widest relative z-10"
+        >
+          Plan Actual
+        </h3>
+        <p class="text-2xl font-bold mt-2 text-white relative z-10">
+          {planActual?.nombre || "Plan Gratis"}
+        </p>
+        <div class="mt-4 relative z-10">
+          <div class="w-full bg-white/5 rounded-full h-1.5">
+            <div
+              class="bg-neon-blue h-1.5 rounded-full"
+              style={`width: ${Math.min((myEvents.length / (planActual?.maxEventos || 1)) * 100, 100)}%`}
+            >
+            </div>
+          </div>
+        </div>
+      </div>
 
-    {
-      myEvents.length === 0 ? (
-        <div class="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-          <p class="text-gray-500 mb-4">No tienes eventos creados.</p>
-          <a href="/events/create" class="text-blue-600 hover:underline">
-            Crear mi primer evento
+      <Card className="hover:border-neon-blue/30 transition-all">
+        <CardHeader>
+          <div
+            class="w-12 h-12 bg-neon-blue/20 rounded-xl flex items-center justify-center mb-4"
+          >
+            <Calendar class="h-6 w-6 text-neon-blue" />
+          </div>
+          <h3 class="text-xl font-bold text-white uppercase tracking-tight">
+            Mis Eventos
+          </h3>
+          <p class="text-sm text-gray-500">
+            Gestiona tus galerías públicas y QRs.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <p class="text-3xl font-bold text-white">
+            {activeEventsCount}
+            <span class="text-xs text-gray-600">activos</span>
+          </p>
+        </CardContent>
+        <CardFooter>
+          <a href="/events/create" class="w-full">
+            <Button
+              variant="primary"
+              size="sm"
+              className="w-full flex items-center justify-center gap-2"
+              ><Plus class="h-4 w-4" />Crear Evento</Button
+            >
+          </a>
+        </CardFooter>
+      </Card>
+
+      {
+        user.isAdmin && (
+          <a
+            href="/admin"
+            class="glass-card p-6 border-l-2 border-neon-blue flex flex-col justify-center hover:bg-neon-blue/10 transition-colors group"
+          >
+            <h3 class="text-xs font-bold text-neon-blue uppercase tracking-widest flex items-center gap-2">
+              Superadmin
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-3 w-3 group-hover:translate-x-1 transition-transform"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
+              </svg>
+            </h3>
+            <p class="text-xl font-bold text-white">Rayuela 360</p>
+          </a>
+        )
+      }
+
+      <div
+        class="glass-card p-6 flex items-center justify-between md:col-span-1 lg:col-span-1 relative overflow-hidden group"
+      >
+        <div
+          class="absolute inset-0 bg-linear-to-br from-neon-pink/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+        </div>
+        <div class="z-10 w-full text-center">
+          <a
+            href="/events/create"
+            class="glass-button w-full justify-center py-3 text-sm"
+          >
+            Nuevo Evento
           </a>
         </div>
-      ) : (
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Nombre
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Código de Acceso
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Fecha Creación
-                </th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+      </div>
+    </div>
+
+    <!-- Main Content Tabs/Sections -->
+    <div class="grid grid-cols-1 lg:grid-cols-1 gap-10">
+      <!-- Events Section -->
+      <section>
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 text-neon-purple"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              ></path>
+            </svg>
+            Mis Eventos
+          </h2>
+        </div>
+
+        {
+          myEvents.length === 0 ? (
+            <div class="glass-card p-12 text-center border-dashed border-2 border-white/20">
+              <div class="bg-white/5 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-8 w-8 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <p class="text-gray-400 mb-6 text-lg">
+                No tienes eventos activos.
+              </p>
+              <a href="/events/create" class="glass-button inline-flex">
+                Comenzar Ahora
+              </a>
+            </div>
+          ) : (
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {myEvents.map((event) => (
-                <tr class="hover:bg-gray-50 transition-colors">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      {event.imagenPortada && (
-                        <img
-                          src={event.imagenPortada}
-                          alt={event.name}
-                          class="h-10 w-10 rounded-lg object-cover mr-3"
-                        />
-                      )}
-                      <div class="text-sm font-medium text-gray-900">
-                        {event.name}
+                <div class="glass-card group flex flex-col h-full overflow-hidden">
+                  {/* Event Header/Image */}
+                  <div class="h-48 bg-gray-800 relative overflow-hidden">
+                    {event.imagenPortada ? (
+                      <img
+                        src={event.imagenPortada}
+                        alt={event.name}
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div class="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-800 to-gray-900 group-hover:from-gray-700 group-hover:to-gray-800 transition-colors">
+                        <Calendar class="h-12 w-12 text-gray-600" />
                       </div>
+                    )}
+
+                    <div class="absolute top-4 right-4">
+                      <span
+                        class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium backdrop-blur-md border border-white/10 ${
+                          event.estado === "activo"
+                            ? "bg-green-500/20 text-green-200"
+                            : event.estado === "finalizado"
+                              ? "bg-gray-500/20 text-gray-200"
+                              : "bg-yellow-500/20 text-yellow-200"
+                        }`}
+                      >
+                        {event.estado?.toUpperCase()}
+                      </span>
                     </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center gap-2">
-                      <code class="text-sm font-mono bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                  </div>
+
+                  {/* Event details */}
+                  <div class="p-6 flex-1 flex flex-col">
+                    <h3
+                      class="text-xl font-bold text-white mb-2 truncate"
+                      title={event.name}
+                    >
+                      {event.name}
+                    </h3>
+
+                    <div class="flex items-center gap-2 mb-4">
+                      <span class="text-gray-400 text-sm">Código:</span>
+                      <code class="px-2 py-1 rounded bg-black/30 text-neon-blue font-mono text-sm border border-neon-blue/20">
                         {event.codigoAcceso}
                       </code>
                       <button
-                        onclick={`navigator.clipboard.writeText('${Astro.url.origin}/eventos/${event.codigoAcceso}/subir'); alert('¡Enlace copiado!')`}
-                        class="text-gray-400 hover:text-blue-600 transition-colors"
-                        title="Copiar enlace de subida"
+                        onclick={`navigator.clipboard.writeText('${Astro.url.origin}/eventos/${event.codigoAcceso}/subir'); alert('Copiado!')`}
+                        class="text-gray-500 hover:text-white transition-colors"
+                        title="Copiar Link"
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                          />
-                        </svg>
+                        <Plus class="h-3.5 w-3.5" />
                       </button>
                     </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span
-                      class={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        event.estado === "activo"
-                          ? "bg-green-100 text-green-800"
-                          : event.estado === "finalizado"
-                            ? "bg-gray-100 text-gray-800"
-                            : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {event.estado}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-500">
-                      {new Date(event.createdAt!).toLocaleDateString()}
+
+                    <div class="mt-auto border-t border-white/10 pt-4 flex items-center justify-between gap-2">
+                      <div class="flex gap-2">
+                        <a
+                          href={`/events/${event.id}/poster`}
+                          title="Imprimir Cartel QR"
+                        >
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="p-2 h-auto"
+                          >
+                            <Printer class="h-4 w-4" />
+                          </Button>
+                        </a>
+                        <a
+                          href={`/events/${event.id}`}
+                          class="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-all"
+                          title="Ver Galería"
+                        >
+                          <Eye class="h-4 w-4" />
+                        </a>
+                        <a
+                          href={`/eventos/${event.codigoAcceso}/subir`}
+                          target="_blank"
+                          class="p-2 hover:bg-white/10 rounded-lg text-neon-blue hover:text-white transition-all"
+                          title="Subir Fotos"
+                        >
+                          <Plus class="h-4 w-4" />
+                        </a>
+                        <button
+                          onclick={`eliminarEvento(${event.id}, '${event.name}')`}
+                          class="p-2 hover:bg-red-500/10 rounded-lg text-red-400 hover:text-red-500 transition-all"
+                          title="Eliminar Evento"
+                        >
+                          <Trash class="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <a
-                      href={`/events/${event.id}`}
-                      class="text-blue-600 hover:text-blue-900 mr-3"
-                    >
-                      Ver Galería
-                    </a>
-                    <a
-                      href={`/eventos/${event.codigoAcceso}/subir`}
-                      target="_blank"
-                      class="text-green-600 hover:text-green-900 mr-3"
-                    >
-                      Formulario
-                    </a>
-                    <button
-                      onclick={`eliminarEvento(${event.id}, '${event.name}')`}
-                      class="text-red-600 hover:text-red-900"
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          )
+        }
+      </section>
+
+      <!-- Services Section (Marketplace) -->
+      <section class="mt-20 border-t border-white/10 pt-16">
+        <div class="flex items-center justify-between mb-10">
+          <div>
+            <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+              <Store class="h-6 w-6 text-neon-pink" />
+              Mis Servicios
+            </h2>
+            <p class="text-gray-400 text-sm mt-1">
+              Gestiona lo que ofreces a otros organizadores.
+            </p>
+          </div>
+          <a href="/services">
+            <Button
+              variant="secondary"
+              size="md"
+              className="flex items-center gap-2"
+            >
+              Gestionar Servicios
+              <ArrowRight class="h-4 w-4" />
+            </Button>
+          </a>
         </div>
-      )
-    }
+
+        <div
+          class="glass-card p-10 bg-linear-to-br from-neon-pink/5 to-transparent border-dashed border-2 border-white/10 text-center"
+        >
+          <p class="text-gray-400 mb-6 font-medium">
+            ¿Eres fotógrafo, DJ o tienes un catering? Empieza a ofrecer tus
+            servicios aquí.
+          </p>
+          <a
+            href="/services/create"
+            class="text-neon-pink hover:text-white font-bold transition-all flex items-center justify-center gap-2 group"
+          >
+            Configurar perfil de vendedor
+            <ArrowRight
+              class="h-4 w-4 group-hover:translate-x-1 transition-transform"
+            />
+          </a>
+        </div>
+      </section>
+    </div>
   </div>
 </Layout>
 
 <script>
-  function eliminarEvento(eventId, eventName) {
-    if (confirm(`¿Estás seguro de que quieres eliminar el evento "${eventName}" y todas sus fotos? Esta acción no se puede deshacer.`)) {
+  function eliminarEvento(eventId: number, eventName: string) {
+    if (
+      confirm(
+        `¿Estás seguro de que quieres eliminar el evento "${eventName}" y todas sus fotos? Esta acción no se puede deshacer.`
+      )
+    ) {
       fetch(`/api/eventos/${eventId}`, {
-        method: 'DELETE'
+        method: "DELETE",
       })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert('Evento eliminado correctamente');
-          location.reload();
-        } else {
-          alert('Error al eliminar el evento: ' + (data.error || 'Error desconocido'));
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('Error al eliminar el evento');
-      });
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            alert("Evento eliminado correctamente");
+            location.reload();
+          } else {
+            alert(
+              "Error al eliminar el evento: " +
+                (data.error || "Error desconocido")
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert("Error al eliminar el evento");
+        });
     }
   }
 </script>

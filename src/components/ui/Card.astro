@@ -1,0 +1,19 @@
+---
+/**
+ * Este archivo implementa el sistema de Cards reactivo y modular.
+ * Se puede usar como componentes individuales o como un conjunto.
+ */
+import { cn } from "../../utils/cn";
+
+interface Props {
+  className?: string;
+}
+
+const { className } = Astro.props;
+---
+
+<div class={cn("glass-card overflow-hidden flex flex-col", className)}>
+  <slot />
+</div>
+
+<!-- Fragmentos para exportar lógica (Simulado via clases en Astro) -->

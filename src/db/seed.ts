@@ -104,15 +104,37 @@ const main = async () => {
         id: "admin-id",
         username: "admin",
         password: passwordHash,
-        tenantId: "default-tenant",
+        tenantId: "rayuela-360", // Tenant especial para superadmin
         email: "admin@galeriarayuela.com",
-        nombreCompleto: "Administrador",
+        nombreCompleto: "Administrador Rayuela",
         planId: null,
         suscripcionActivaId: null,
+        isAdmin: true,
       })
       .onConflictDoNothing();
 
-    console.log("✅ Usuario admin creado");
+    console.log("✅ Usuario superadmin ('Rayuela 360') creado");
+
+    // 2b. Crear usuario vendedor de prueba
+    console.log("👤 Creando usuario vendedor...");
+    await db
+      .insert(users)
+      .values({
+        id: "vendedor-id",
+        username: "vendedor",
+        password: passwordHash,
+        tenantId: "vendor-test",
+        email: "vendedor@test.com",
+        nombreCompleto: "Vendedor de Prueba",
+        planId: "premium",
+        isVendor: true,
+        bio: "Soy un fotógrafo profesional con 10 años de experiencia en eventos.",
+        location: "Buenos Aires, Argentina",
+      })
+      .onConflictDoNothing();
+
+    console.log("✅ Usuario vendedor creado");
+
 
     // 3. Asignar plan gratis al admin
     console.log("🎁 Asignando plan gratis...");

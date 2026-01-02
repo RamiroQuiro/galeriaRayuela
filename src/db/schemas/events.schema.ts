@@ -15,6 +15,9 @@ export const events = sqliteTable("events", {
   // Ruta de la imagen QR generada
   urlQr: text("url_qr"),
 
+  // Imagen de portada
+  imagenPortada: text("imagen_portada"),
+
   // Límites y configuración
   maxFotos: integer("max_fotos").default(100), // Límite de fotos (preparado para planes)
 

@@ -1,0 +1,36 @@
+---
+import { cn } from "../../utils/cn";
+
+interface Props extends astroHTML.JSX.ButtonHTMLAttributes {
+  variant?: "primary" | "secondary" | "ghost" | "danger";
+  size?: "sm" | "md" | "lg";
+  className?: string;
+}
+
+const { variant = "primary", size = "md", className, ...rest } = Astro.props;
+
+const variants = {
+  primary:
+    "bg-linear-to-r from-neon-blue to-neon-purple text-white hover:opacity-90",
+  secondary: "bg-white/10 text-white border border-white/10 hover:bg-white/20",
+  ghost: "bg-transparent text-gray-400 hover:text-white hover:bg-white/5",
+  danger:
+    "bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20",
+};
+
+const sizes = {
+  sm: "px-3 py-1.5 text-xs",
+  md: "px-6 py-2 text-sm",
+  lg: "px-8 py-3 text-base",
+};
+
+const baseStyles =
+  "font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:pointer-events-none";
+---
+
+<button
+  class={cn(baseStyles, variants[variant], sizes[size], className)}
+  {...rest}
+>
+  <slot />
+</button>
