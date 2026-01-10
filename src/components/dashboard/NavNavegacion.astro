@@ -1,0 +1,31 @@
+---
+const currentPath = Astro.url.pathname;
+const isActive = (path: string) =>
+  currentPath === path
+    ? "border-neon-blue text-white"
+    : "border-transparent text-gray-500 hover:text-gray-300";
+---
+
+<div
+  class="flex gap-2 w-full items-center z-50 justify-center sm:gap-8 border-b border-white/10 mb-10 overflow-x-auto no-scrollbar scroll-smooth"
+>
+  <a
+    href="/dashboard"
+    class={`tab-btn px-4 py-4 cursor-pointer text-[11px] font-black uppercase tracking-[0.2em] transition-all border-b-2 whitespace-nowrap ${isActive("/dashboard")}`}
+  >
+    Eventos
+  </a>
+
+  <a
+    href="/dashboard/servicios"
+    class={`tab-btn px-4 py-4 text-[11px] font-black uppercase tracking-[0.2em] transition-all border-b-2 border-transparent cursor-pointer whitespace-nowrap ${isActive("/dashboard/servicios")}`}
+  >
+    Servicios
+  </a>
+  <a
+    href="/dashboard/perfil"
+    class={`tab-btn px-4 py-4 text-[11px] font-black uppercase tracking-[0.2em] transition-all border-b-2 cursor-pointer whitespace-nowrap ${isActive("/dashboard/perfil")}`}
+  >
+    Perfil
+  </a>
+</div>

@@ -31,104 +31,158 @@ const categories = [
 <Layout title="Marketplace | Galeria Rayuela">
   <div class="container mx-auto p-4 max-w-7xl pt-16">
     <!-- Hero Section -->
-    <div class="text-center mb-20">
-      <h1 class="text-6xl font-black mb-6 tracking-tighter">
-        <span
-          class="bg-clip-text text-transparent bg-linear-to-r from-neon-blue via-neon-purple to-neon-pink"
-        >
-          Encuentra el alma
+    <!-- Hero Section -->
+    <div class="text-center mb-10 md:mb-16">
+      <h1 class="text-3xl md:text-5xl font-bold mb-4 tracking-tight text-white">
+        Marketplace
+        <span class="block text-xl md:text-2xl font-normal text-gray-400 mt-2">
+          Servicios para tu evento
         </span>
-        <br />
-        <span class="text-white">de tu próximo evento</span>
       </h1>
-      <p class="text-gray-400 text-xl max-w-2xl mx-auto">
-        Directorio exclusivo de servicios premium para eventos. Fotografía,
-        Música, Catering y más, todo en un solo lugar.
+      <p class="text-gray-500 text-sm md:text-base max-w-xl mx-auto">
+        Encuentra lo que necesitas para hacer tu evento único.
       </p>
     </div>
 
     {/* Filtros */}
-    <div class="flex flex-wrap justify-center gap-3">
-      <Button variant="secondary" size="sm" className="rounded-full px-8"
-        >Todos</Button
+    <div
+      class="flex flex-wrap justify-center gap-2 mb-10"
+      id="filter-container"
+    >
+      <button
+        class="filter-btn px-4 py-2 rounded-full text-xs font-medium transition-all bg-white/10 text-white hover:bg-white/20 active"
+        data-category="all"
       >
+        Todos
+      </button>
       {
         categories.map((cat: string) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="rounded-full px-8 border border-white/5"
+          <button
+            class="filter-btn px-4 py-2 rounded-full text-xs font-medium transition-all bg-transparent border border-white/10 text-gray-400 hover:text-white hover:border-white/30"
+            data-category={cat}
           >
             {cat}
-          </Button>
+          </button>
         ))
       }
     </div>
+
+    <script is:inline>
+      document.addEventListener("astro:page-load", () => {
+        const buttons = document.querySelectorAll(".filter-btn");
+        const cards = document.querySelectorAll(".service-card");
+
+        buttons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            // Update active state
+            buttons.forEach((b) => {
+              b.classList.remove("bg-white/10", "text-white");
+              b.classList.add(
+                "bg-transparent",
+                "text-gray-400",
+                "border",
+                "border-white/10"
+              );
+            });
+            btn.classList.remove(
+              "bg-transparent",
+              "text-gray-400",
+              "border",
+              "border-white/10"
+            );
+            btn.classList.add("bg-white/10", "text-white");
+
+            const category = btn.getAttribute("data-category");
+
+            cards.forEach((card) => {
+              if (
+                category === "all" ||
+                card.getAttribute("data-category") === category
+              ) {
+                card.style.display = "block";
+                // Add fade in animation
+                card.style.opacity = "0";
+                setTimeout(() => (card.style.opacity = "1"), 50);
+              } else {
+                card.style.display = "none";
+              }
+            });
+          });
+        });
+      });
+    </script>
 
     {/* Grid de Servicios */}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {
         allServices.map((s: any) => (
-          <Card className="group h-full">
-            <CardContent className="p-0">
-              <div class="h-48 bg-linear-to-br from-midnight-800 to-midnight-900 flex items-center justify-center relative overflow-hidden">
-                <div class="absolute inset-0 bg-neon-blue/5 group-hover:bg-neon-blue/10 transition-colors" />
-                <Sparkles class="h-12 w-12 text-neon-blue/40" />
-                <span class="absolute top-4 right-4 bg-neon-purple/20 text-neon-purple text-[10px] font-bold px-2 py-1 rounded border border-neon-purple/30 uppercase tracking-widest">
-                  {s.service.category}
-                </span>
-              </div>
+          <div
+            class="service-card transition-all duration-300"
+            data-category={s.service.category}
+          >
+            <Card className="group h-full">
+              <CardContent className="p-0">
+                <div class="h-48 bg-linear-to-br from-midnight-800 to-midnight-900 flex items-center justify-center relative overflow-hidden">
+                  <div class="absolute inset-0 bg-neon-blue/5 group-hover:bg-neon-blue/10 transition-colors" />
+                  <Sparkles class="h-12 w-12 text-neon-blue/40" />
+                  <span class="absolute top-4 right-4 bg-neon-purple/20 text-neon-purple text-[10px] font-bold px-2 py-1 rounded border border-neon-purple/30 uppercase tracking-widest">
+                    {s.service.category}
+                  </span>
+                </div>
 
-              <div class="p-6">
-                <h3 class="text-xl font-bold text-white mb-2 group-hover:text-neon-blue transition-colors">
-                  {s.service.name}
-                </h3>
-                <p class="text-gray-400 text-sm line-clamp-2 mb-6">
-                  {s.service.description}
-                </p>
+                <div class="p-6">
+                  <h3 class="text-xl font-bold text-white mb-2 group-hover:text-neon-blue transition-colors">
+                    {s.service.name}
+                  </h3>
+                  <p class="text-gray-400 text-sm line-clamp-2 mb-6">
+                    {s.service.description}
+                  </p>
 
-                <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
-                  <div class="w-10 h-10 rounded-full bg-linear-to-br from-neon-blue to-neon-purple p-px">
-                    <div class="w-full h-full rounded-full bg-midnight-900 flex items-center justify-center text-xs font-bold font-display text-white">
-                      {s.vendor.username.charAt(0).toUpperCase()}
+                  <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                    <div class="w-10 h-10 rounded-full bg-linear-to-br from-neon-blue to-neon-purple p-px">
+                      <div class="w-full h-full rounded-full bg-midnight-900 flex items-center justify-center text-xs font-bold font-display text-white">
+                        {s.vendor.username.charAt(0).toUpperCase()}
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <p class="text-xs font-bold text-white">
-                      {s.vendor.username}
-                    </p>
-                    <div class="flex items-center gap-1 mt-0.5">
-                      <Star class="h-2.5 w-2.5 text-yellow-500 fill-yellow-500" />
-                      <p class="text-[10px] text-gray-500">4.9 (24 reseñas)</p>
+                    <div>
+                      <p class="text-xs font-bold text-white">
+                        {s.vendor.username}
+                      </p>
+                      <div class="flex items-center gap-1 mt-0.5">
+                        <Star class="h-2.5 w-2.5 text-yellow-500 fill-yellow-500" />
+                        <p class="text-[10px] text-gray-500">
+                          4.9 (24 reseñas)
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
+              </CardContent>
 
-            <CardFooter className="flex-row items-center justify-between">
-              <div>
-                <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest leading-none mb-1">
-                  Desde
-                </p>
-                <p class="text-xl font-black text-white tracking-tighter">
-                  {s.service.currency} {s.service.price}
-                  <span class="text-[10px] text-gray-500 font-bold ml-1">
-                    /{s.service.unit}
-                  </span>
-                </p>
-              </div>
-              <a href={`/marketplace/vendedor/${s.vendor.id}`}>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  className="px-5 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-neon-blue/20 hover:scale-105 active:scale-95 transition-all"
-                >
-                  Saber más
-                </Button>
-              </a>
-            </CardFooter>
-          </Card>
+              <CardFooter className="flex-row items-center justify-between">
+                <div>
+                  <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest leading-none mb-1">
+                    Desde
+                  </p>
+                  <p class="text-xl font-black text-white tracking-tighter">
+                    {s.service.currency} {s.service.price}
+                    <span class="text-[10px] text-gray-500 font-bold ml-1">
+                      /{s.service.unit}
+                    </span>
+                  </p>
+                </div>
+                <a href={`/marketplace/vendedor/${s.vendor.id}`}>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="px-5 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-neon-blue/20 hover:scale-105 active:scale-95 transition-all"
+                  >
+                    Saber más
+                  </Button>
+                </a>
+              </CardFooter>
+            </Card>
+          </div>
         ))
       }
     </div>

@@ -21,7 +21,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
   }
 
   try {
-    // Validar límites del plan
     const validacion = await puedeCrearEvento(locals.user.id);
 
     if (!validacion.puede) {
@@ -44,12 +43,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return createResponse(400, "Se requiere un nombre para el evento");
     }
 
-    // Generar código de acceso único
     let codigoAcceso = generarCodigoAcceso(8);
     let intentos = 0;
     const maxIntentos = 10;
-
-    // Verificar que el código sea único
     while (intentos < maxIntentos) {
       const eventoExistente = await db
         .select()
@@ -63,25 +59,22 @@ export const POST: APIRoute = async ({ request, locals }) => {
       intentos++;
     }
 
-    // Obtener límite de fotos según el plan del usuario
     const planActual = await obtenerPlanActual(locals.user.id);
     const maxFotos = planActual?.maxFotosPorEvento || 50;
 
-    // 1. Crear evento primero para obtener el ID
     const nuevoEvento = await db
       .insert(events)
       .values({
         name: nombre,
         tenantId: locals.tenantId || "default",
         codigoAcceso: codigoAcceso,
-        maxFotos: maxFotos, // Límite según plan del usuario
+        maxFotos: maxFotos,
         estado: "activo",
-        imagenPortada: null, // Se actualizará después si hay imagen
+        imagenPortada: null,
       })
       .returning()
       .get();
 
-    // 2. Guardar imagen de portada si existe - Nueva Estructura
     if (imagenPortada && imagenPortada.size > 0) {
       const directorioSubida = path.join(
         process.cwd(),
@@ -105,10 +98,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
       await fs.writeFile(rutaArchivo, Buffer.from(buffer));
       
-      // URL virtual para el endpoint [...path].ts
       const virtualPath = `/uploads/${nuevoEvento.tenantId}/${nuevoEvento.id}/portada/${nombreArchivo}`;
       
-      // 3. Actualizar el evento con la ruta de la portada
       await db
         .update(events)
         .set({ imagenPortada: virtualPath })

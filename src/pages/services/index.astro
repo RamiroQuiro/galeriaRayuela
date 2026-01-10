@@ -15,7 +15,7 @@ const myServices = await db
   .select()
   .from(services)
   .where(eq(services.tenantId, user.tenantId))
-  .orderBy(desc(services.createdAt))
+  .orderBy(desc(services.created_at))
   .all();
 ---
 

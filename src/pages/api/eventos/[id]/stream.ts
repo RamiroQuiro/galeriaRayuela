@@ -25,7 +25,7 @@ export const GET: APIRoute = async ({ params }) => {
             .select()
             .from(images)
             .where(eq(images.eventId, eventoId))
-            .orderBy(desc(images.createdAt))
+            .orderBy(desc(images.created_at))
             .limit(10)
             .all();
 

@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../../db';
 import { users } from '../../../db/schemas';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { createResponse } from '../../../utils/responseAPI';
 import { lucia } from '../../../auth';
 import { verify } from '@node-rs/argon2';
@@ -11,7 +11,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const body = await request.json();
     const { username, password } = body;
 
-    const user = await db.select().from(users).where(eq(users.username, username)).get();
+    const user = await db.select().from(users).where(
+        or(
+            eq(users.username, username),
+            eq(users.email, username)
+        )
+    ).get();
 
     if (!user) {
       return createResponse(401, 'Invalid credentials');
@@ -21,6 +26,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     if (!validPassword) {
         return createResponse(401, 'Invalid credentials');
     }
+
+    // Invalidate ALL existing sessions for this user to enforce single session
+    await lucia.invalidateUserSessions(user.id);
 
     const session = await lucia.createSession(user.id, {});
     const sessionCookie = lucia.createSessionCookie(session.id);

@@ -28,8 +28,13 @@ export const events = sqliteTable("events", {
   fechaEvento: text("fecha_evento"),
 
   // Timestamps
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
+  created_at: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(strftime('%s', 'now'))`),
+  updated_at: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(strftime('%s', 'now'))`),
+  deleted_at: integer('deleted_at', { mode: 'timestamp' }), // Para Soft Delete (Papelera)
 });
 
 export type Event = typeof events.$inferSelect;

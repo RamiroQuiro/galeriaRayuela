@@ -7,10 +7,16 @@ CREATE TABLE `users` (
 	`tenant_id` text NOT NULL,
 	`plan_id` text,
 	`suscripcion_activa_id` integer,
+	`is_admin` integer DEFAULT false,
 	`is_vendor` integer DEFAULT false,
 	`bio` text,
 	`location` text,
 	`whatsapp` text,
+	`brand_name` text,
+	`avatar` text,
+	`instagram` text,
+	`alias_mp` text,
+	`cbu` text,
 	`rating` integer DEFAULT 0,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP
 );

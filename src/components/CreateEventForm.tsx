@@ -1,17 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { addToast } from "../store/toastStore";
+import { addEvent, updateEvent, eventsStore } from "../store/eventsStore";
+import { Image as ImageIcon, Plus, X, Save } from "lucide-react";
+import { showToast } from "./toast/showToast";
 
-export function CreateEventForm() {
-  const [name, setName] = useState("");
+interface EventData {
+  id?: number;
+  name: string;
+  imagenPortada?: string | null;
+  [key: string]: any;
+}
+
+interface CreateEventFormProps {
+  onSuccess?: () => void;
+  initialData?: EventData | null;
+}
+
+export function CreateEventForm({
+  onSuccess,
+  initialData,
+}: CreateEventFormProps) {
+  const [name, setName] = useState(initialData?.name || "");
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string>("");
+  const [preview, setPreview] = useState<string>(
+    initialData?.imagenPortada || ""
+  );
+
+  useEffect(() => {
+    if (initialData) {
+      setName(initialData.name);
+      setPreview(initialData.imagenPortada || "");
+    } else {
+      setName("");
+      setPreview("");
+      setFile(null);
+    }
+  }, [initialData]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      // Crear preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result as string);
@@ -22,6 +52,7 @@ export function CreateEventForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name) return;
 
     setLoading(true);
     const formData = new FormData();
@@ -31,143 +62,145 @@ export function CreateEventForm() {
     }
 
     try {
-      const res = await fetch("/api/events", {
-        method: "POST",
+      const isEdit = !!initialData?.id;
+      const url = isEdit ? `/api/events/${initialData.id}` : "/api/events";
+      const method = isEdit ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method: method,
         body: formData,
       });
 
-      if (res.ok) {
-        addToast("Evento creado exitosamente", "success");
-        setTimeout(() => (window.location.href = "/dashboard"), 1000);
-      } else {
-        const json = await res.json();
+      const json = await res.json();
 
-        // Si es error de límite de plan, mostrar mensaje especial
+      if (res.ok) {
+        showToast(isEdit ? "Evento actualizado" : "Evento creado exitosamente");
+
+        if (isEdit) {
+          // For simple updates we might need to refresh or update store manually if API returns data
+          // updateEvent(json.data.evento) // Assuming store has updateEvent
+          window.location.reload(); // Simple reload to reflect changes for now or implement updateEvent in store
+        } else {
+          if (json.data.evento) {
+            addEvent(json.data.evento);
+          }
+        }
+
+        if (onSuccess) onSuccess();
+        if (!isEdit) {
+          setName("");
+          setFile(null);
+          setPreview("");
+        }
+      } else {
         if (json.requiereUpgrade) {
           addToast(
             `${json.message}. Mejora tu plan para crear más eventos.`,
             "error"
           );
-          setTimeout(() => (window.location.href = "/planes"), 2000);
         } else {
-          addToast(json.message || "Error al crear evento", "error");
+          addToast(
+            json.message || `Error al ${isEdit ? "editar" : "crear"} evento`,
+            "error"
+          );
         }
-        setLoading(false);
       }
     } catch (error) {
       addToast("Error de conexión", "error");
+    } finally {
       setLoading(false);
     }
   };
 
+  const isEdit = !!initialData?.id;
+
   return (
-    <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-      <div className="rounded-md shadow-sm space-y-4">
-        {/* Nombre del evento */}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-4">
         <div>
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">
             Nombre del Evento
           </label>
           <input
-            id="name"
             type="text"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-            placeholder="Ej: Cumpleaños de Juan"
+            className="glass-input w-full text-sm outline-hidden py-3 px-4 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-gray-600 focus:border-neon-blue/50 transition-all"
+            placeholder="Ej: Boda Ana & Víctor"
           />
         </div>
 
-        {/* Imagen de portada (opcional) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">
             Imagen de Portada (Opcional)
           </label>
-          <p className="text-xs text-gray-500 mb-2">
-            Esta imagen se mostrará como portada del evento, no en la galería
-          </p>
 
           {preview ? (
-            <div className="relative">
+            <div className="relative group rounded-2xl overflow-hidden border border-white/10 aspect-video">
               <img
                 src={preview}
                 alt="Preview"
-                className="w-full h-48 object-cover rounded-lg"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
-              <button
-                type="button"
-                onClick={() => {
-                  setFile(null);
-                  setPreview("");
-                }}
-                className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFile(null);
+                    setPreview("");
+                  }}
+                  className="bg-red-500/80 hover:bg-red-500 text-white p-2 rounded-full backdrop-blur-md transition-all scale-75 group-hover:scale-100"
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            </div>
-          ) : (
-            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-blue-500 transition-colors">
-              <div className="space-y-1 text-center w-full">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  stroke="currentColor"
-                  fill="none"
-                  viewBox="0 0 48 48"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <div className="flex text-sm text-gray-600 justify-center">
-                  <label
-                    htmlFor="coverImage"
-                    className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
-                  >
-                    <span>Sube una imagen</span>
-                    <input
-                      id="coverImage"
-                      name="coverImage"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="sr-only"
-                    />
-                  </label>
-                  <p className="pl-1">o arrastra y suelta</p>
-                </div>
-                <p className="text-xs text-gray-500">PNG, JPG, GIF hasta 5MB</p>
+                  <X className="w-5 h-5" />
+                </button>
               </div>
             </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center aspect-video w-full border-2 border-dashed border-white/10 rounded-2xl hover:border-neon-blue/40 hover:bg-white/5 transition-all cursor-pointer group">
+              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <div className="bg-white/5 p-4 rounded-full mb-3 group-hover:scale-110 transition-transform">
+                  <ImageIcon className="w-8 h-8 text-gray-500 group-hover:text-neon-blue" />
+                </div>
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">
+                  {isEdit ? "Cambiar Portada" : "Seleccionar Portada"}
+                </p>
+                <p className="text-[10px] text-gray-600 mt-2 uppercase tracking-tight font-medium">
+                  PNG, JPG (Máx. 5MB)
+                </p>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
           )}
         </div>
       </div>
 
-      <div>
+      <div className="pt-2">
         <button
           type="submit"
-          disabled={loading}
-          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
+          disabled={loading || !name}
+          className="w-full py-4 rounded-xl bg-linear-to-r from-neon-blue to-neon-purple text-white font-black uppercase tracking-widest text-[11px] transition-all hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_10px_30px_rgba(0,102,255,0.25)] flex items-center justify-center gap-2"
         >
-          {loading ? "Creando..." : "Crear Evento"}
+          {loading ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              <span>{isEdit ? "Guardando..." : "Creando..."}</span>
+            </div>
+          ) : (
+            <>
+              {isEdit ? (
+                <Save className="w-4 h-4" />
+              ) : (
+                <Plus className="w-4 h-4" />
+              )}
+              <span>{isEdit ? "Guardar Cambios" : "Crear Evento"}</span>
+            </>
+          )}
         </button>
       </div>
     </form>

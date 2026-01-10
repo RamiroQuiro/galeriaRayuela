@@ -28,8 +28,12 @@ export const suscripciones = sqliteTable("suscripciones", {
   montoPagado: integer("monto_pagado"), // En centavos
 
   // Timestamps
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
+  created_at: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(strftime('%s', 'now'))`),
+  updated_at: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(strftime('%s', 'now'))`),
 });
 
 export type Suscripcion = typeof suscripciones.$inferSelect;

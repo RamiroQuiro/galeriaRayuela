@@ -1,0 +1,59 @@
+---
+import { db } from "../../../db/index";
+import { images, events } from "../../../db/schemas";
+import { eq, desc } from "drizzle-orm";
+import Proyeccion from "../../../components/galeria/Proyeccion";
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/404");
+}
+
+const event = await db
+  .select()
+  .from(events)
+  .where(eq(events.id, Number(id)))
+  .get();
+
+if (!event) {
+  return Astro.redirect("/404");
+}
+
+// Fetch initial images
+const eventImages = await db
+  .select()
+  .from(images)
+  .where(eq(images.eventId, Number(id)))
+  .orderBy(desc(images.created_at))
+  .all();
+
+// Format for component
+const formattedImages = eventImages.map((img) => ({
+  id: img.id,
+  path: img.path,
+  nombreInvitado: img.nombreInvitado || "",
+  createdAt: new Date(img.created_at), // 'created_at' is Date object due to timestamp mode? Or number?
+}));
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Proyección en Vivo - {event.name}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-black m-0 overflow-hidden">
+    <Proyeccion
+      client:only="react"
+      eventId={Number(id)}
+      initialImages={formattedImages}
+    />
+  </body>
+</html>

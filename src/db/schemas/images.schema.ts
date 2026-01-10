@@ -22,7 +22,9 @@ export const images = sqliteTable("images", {
   tamanioBytes: integer("tamanio_bytes"), // Tamaño del archivo en bytes
 
   // Timestamps
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  created_at: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(strftime('%s', 'now'))`),
 });
 
 export type Image = typeof images.$inferSelect;

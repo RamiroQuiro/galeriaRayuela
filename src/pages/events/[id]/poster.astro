@@ -74,6 +74,13 @@ const uploadQrUri = await QRCode.toDataURL(uploadUrl, {
           >
             SUBIR
           </button>
+          <button
+            class="px-4 py-2 rounded-lg text-xs font-bold transition-all hover:bg-white/5 layout-btn uppercase"
+            data-layout="centerpiece"
+            data-active="false"
+          >
+            Centro Mesa
+          </button>
         </div>
       </div>
     </div>
@@ -91,7 +98,67 @@ const uploadQrUri = await QRCode.toDataURL(uploadUrl, {
       >
       </div>
 
-      <div class="mt-8 mb-12">
+      <!-- Centerpiece Layout -->
+      <div
+        class="poster-centerpiece w-full flex flex-col items-center justify-center h-full"
+      >
+        <!-- QR Code (Grande y Protagonista) -->
+        <div class="relative mb-12 transform scale-125">
+          <div
+            class="absolute -inset-4 bg-linear-to-br from-neon-purple to-neon-pink rounded-3xl opacity-20 blur-xl"
+          >
+          </div>
+          <div
+            class="relative bg-white p-4 rounded-3xl border-4 border-slate-900 shadow-2xl"
+          >
+            <img src={uploadQrUri} class="w-[80mm] h-[80mm]" />
+            <div
+              class="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-2 rounded-full whitespace-nowrap border-4 border-white"
+            >
+              <span class="font-bold text-lg tracking-widest uppercase"
+                >Escanéame</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Event Image (Circular o Estilizada) -->
+        {
+          event.imagenPortada && (
+            <div class="w-full max-w-[120mm] aspect-video rounded-3xl overflow-hidden shadow-xl border-4 border-white mb-8 transform rotate-1 hover:rotate-0 transition-transform duration-500">
+              <img
+                src={event.imagenPortada}
+                class="w-full h-full object-cover"
+              />
+            </div>
+          )
+        }
+
+        <!-- Titles & CTA -->
+        <div class="space-y-4">
+          <h1
+            class="text-6xl font-black text-slate-900 tracking-tighter uppercase leading-[0.9]"
+          >
+            {event.name}
+          </h1>
+          <div class="w-24 h-2 bg-neon-blue mx-auto rounded-full"></div>
+          <p
+            class="text-2xl text-slate-500 font-medium max-w-md mx-auto leading-relaxed"
+          >
+            ¡No te guardes las fotos! <br />
+            <span class="text-neon-purple font-bold">Súbelas aquí</span> y compártelas
+            con todos.
+          </p>
+        </div>
+
+        <div class="mt-12 opacity-50">
+          <p class="text-sm font-bold tracking-[0.3em] uppercase">
+            galeriarayuela360.com
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-8 mb-12 poster-default-content">
         <div class="poster-header-text">
           <h2
             class="text-5xl font-black tracking-tighter text-slate-900 uppercase mb-4"
@@ -145,7 +212,9 @@ const uploadQrUri = await QRCode.toDataURL(uploadUrl, {
       </div>
 
       <!-- Dual QR Grid / Container -->
-      <div class="qr-container flex gap-10 w-full justify-center mb-12">
+      <div
+        class="qr-container poster-default-content flex gap-10 w-full justify-center mb-12"
+      >
         <!-- QR 1: Galería -->
         <div class="qr-gallery w-fit flex flex-col items-center gap-4 group">
           <div
@@ -205,7 +274,7 @@ const uploadQrUri = await QRCode.toDataURL(uploadUrl, {
 
       <!-- Instructions -->
       <div
-        class="mb-12 max-w-md bg-slate-50 p-6 rounded-3xl border border-slate-100"
+        class="mb-12 max-w-md bg-slate-50 p-6 rounded-3xl border border-slate-100 poster-default-content"
       >
         <p class="text-slate-600 font-medium leading-relaxed">
           ¡Usa la cámara de tu celular para escanear el código QR! No necesitas
@@ -214,7 +283,9 @@ const uploadQrUri = await QRCode.toDataURL(uploadUrl, {
       </div>
 
       <!-- Footer Info -->
-      <div class="mt-auto border-t-2 border-slate-100 pt-12 w-full">
+      <div
+        class="mt-auto border-t-2 border-slate-100 pt-12 w-full poster-default-content"
+      >
         <p
           class="text-xl text-slate-400 font-bold tracking-widest uppercase mb-4"
         >
@@ -226,11 +297,11 @@ const uploadQrUri = await QRCode.toDataURL(uploadUrl, {
       </div>
 
       <div
-        class="absolute bottom-[-50px] right-[-50px] w-48 h-48 bg-neon-blue/5 rounded-full blur-3xl"
+        class="absolute bottom-[-50px] right-[-50px] w-48 h-48 bg-neon-blue/5 rounded-full blur-3xl poster-default-content"
       >
       </div>
       <div
-        class="absolute top-[-50px] left-[-50px] w-48 h-48 bg-neon-purple/5 rounded-full blur-3xl"
+        class="absolute top-[-50px] left-[-50px] w-48 h-48 bg-neon-purple/5 rounded-full blur-3xl poster-default-content"
       >
       </div>
     </div>
@@ -238,6 +309,20 @@ const uploadQrUri = await QRCode.toDataURL(uploadUrl, {
 </Layout>
 
 <style is:global>
+  /* Logic for toggling layouts */
+
+  /* Centerpiece Logic */
+  .poster-centerpiece {
+    display: none;
+  }
+  body[data-layout="centerpiece"] .poster-centerpiece {
+    display: flex;
+  }
+  body[data-layout="centerpiece"] .poster-default-content {
+    display: none !important;
+  }
+
+  /* Gallery/Upload/Dual Logic */
   body[data-layout="gallery"] .qr-upload {
     display: none !important;
   }

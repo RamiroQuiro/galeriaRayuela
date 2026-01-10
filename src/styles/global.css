@@ -4,7 +4,11 @@
   --font-display: "Outfit", sans-serif;
   --font-body: "Inter", sans-serif;
 
-  /* Midnight Palette - Dark Blue/Slate base */
+
+  --color-primary-100:#3b82f6;
+  --color-primary-150:#f8fafc;
+  --color-primary-200:#f8fafc;
+  --color-primary-300:#f8fafc;
   --color-midnight-50: #f8fafc;
   --color-midnight-100: #f1f5f9;
   --color-midnight-200: #e2e8f0;
@@ -20,12 +24,16 @@
   /* texto */
   --color-text: #1F1F1F;
   --color-text-title: #181818;
-
+--color-text-description: #181818;
+--color-border: hsl(214 32% 91%);
+ --input: 214 32% 91%;
+ --ring: 222 47% 20%;
   /* Neon Accents */
   --color-neon-blue: #3b82f6;
   --color-neon-purple: #8b5cf6;
   --color-neon-pink: #ec4899;
   --color-neon-green: #10b981;
+   --color-background: 210 20% 98%;
 }
 
 @utility glass {
@@ -41,7 +49,7 @@
 }
 
 @utility glass-input {
-  @apply bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple transition-all;
+  @apply bg-white/5 border border-border rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple transition-all;
 }
 
 @layer base {
@@ -54,6 +62,6 @@
     @apply font-display tracking-tight text-white;
   }
   body {
-    @apply font-body text-gray-300;
+    @apply font-body text-gray-300 bg-background;
   }
 }

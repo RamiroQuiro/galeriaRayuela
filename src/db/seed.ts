@@ -137,6 +137,11 @@ const main = async () => {
         isVendor: true,
         bio: "Soy un fotógrafo profesional con 10 años de experiencia en eventos.",
         location: "Buenos Aires, Argentina",
+        nombreFantasia: "Flash Eventos",
+        instagram: "https://instagram.com/flash.eventos",
+        whatsapp: "+5491112345678",
+        cbu: "0000003100000000000000",
+        alias_mp: "flash.eventos.mp",
       })
       .onConflictDoNothing();
 

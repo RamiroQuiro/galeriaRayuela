@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "a2a0d3bf-da41-4a51-9023-eed3a196a9fa",
+  "id": "7d4b2840-8d71-40d3-b5d1-7daf56a18f11",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "users": {
@@ -63,6 +63,14 @@
           "notNull": false,
           "autoincrement": false
         },
+        "is_admin": {
+          "name": "is_admin",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": false
+        },
         "is_vendor": {
           "name": "is_vendor",
           "type": "integer",
@@ -87,6 +95,41 @@
         },
         "whatsapp": {
           "name": "whatsapp",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "brand_name": {
+          "name": "brand_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "avatar": {
+          "name": "avatar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "instagram": {
+          "name": "instagram",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "alias_mp": {
+          "name": "alias_mp",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "cbu": {
+          "name": "cbu",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

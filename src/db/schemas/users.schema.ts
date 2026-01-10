@@ -27,11 +27,16 @@ export const users = sqliteTable("users", {
   isVendor: integer("is_vendor", { mode: "boolean" }).default(false),
   bio: text("bio"),
   location: text("location"),
-  whatsapp: text("whatsapp"), // Contacto directo
+  whatsapp: text("whatsapp"),
+  nombreFantasia: text("nombre_fantasia"), 
+  avatar: text("avatar"), 
+  instagram: text("instagram"), 
+  alias_mp: text("alias_mp"), 
+  cbu: text("cbu"), 
   rating: integer("rating").default(0),
-
-  // Timestamps
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  created_at: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(strftime('%s', 'now'))`),
 });
 
 export type User = typeof users.$inferSelect;

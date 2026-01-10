@@ -1,0 +1,120 @@
+---
+import { db } from "../../../db/index";
+import { eq } from "drizzle-orm";
+import DashboarLayout from "../../../layouts/DashboarLayout.astro";
+import Button from "../../../components/ui/Button.astro";
+import { Store } from "lucide-astro";
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect("/login");
+}
+---
+
+<DashboarLayout title="Perfil de Empresa | Galeria Rayuela">
+  <div class="container mx-auto p-4 max-w-7xl pt-10">
+    <div class="mb-8">
+      <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+        <Store class="h-6 w-6 text-neon-pink" />
+        Perfil de Empresa
+      </h2>
+      <p class="text-gray-400 text-sm mt-1">
+        Tu identidad pública en el marketplace.
+      </p>
+    </div>
+
+    <form
+      id="profileForm"
+      class="glass-card p-4 sm:p-8 border-white/5 bg-midnight-900/40"
+    >
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-6">
+          <div>
+            <label
+              class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2"
+              >Biografía Profesional</label
+            >
+            <textarea
+              name="bio"
+              rows="6"
+              class="glass-input w-full resize-none text-sm outline-hidden"
+              placeholder="Cuéntanos sobre tu experiencia y lo que ofreces..."
+              >{user.bio || ""}</textarea
+            >
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div class="grid grid-cols-1 gap-6">
+            <div>
+              <label
+                class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2"
+                >Ubicación</label
+              >
+              <input
+                type="text"
+                name="location"
+                class="glass-input w-full text-sm outline-hidden"
+                placeholder="ej. Buenos Aires, Argentina"
+                value={user.location || ""}
+              />
+            </div>
+            <div>
+              <label
+                class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2"
+                >WhatsApp de Contacto</label
+              >
+              <input
+                type="text"
+                name="whatsapp"
+                class="glass-input w-full text-sm outline-hidden"
+                placeholder="ej. 54911..."
+                value={user.whatsapp || ""}
+              />
+            </div>
+          </div>
+
+          <div class="pt-4">
+            <Button
+              type="submit"
+              variant="primary"
+              className="w-full py-6 flex items-center justify-center gap-2 group"
+            >
+              <span class="group-hover:scale-105 transition-transform"
+                >Guardar Cambios del Perfil</span
+              >
+            </Button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script is:inline>
+    // Profile Form Logic
+    const profileForm = document.getElementById("profileForm");
+    profileForm?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(profileForm);
+      const data = Object.fromEntries(formData);
+
+      try {
+        const res = await fetch("/api/users/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+
+        if (res.ok) {
+          alert("Perfil actualizado correctamente");
+        } else {
+          alert("Error al actualizar el perfil");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Ocurrió un error inesperado");
+      }
+    });
+  </script>
+</DashboarLayout>
