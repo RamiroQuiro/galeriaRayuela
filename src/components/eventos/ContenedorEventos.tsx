@@ -180,7 +180,6 @@ export default function ContenedorEventos({
           onClose={closeModal}
           title="Editar Evento"
           id="modal-editar-evento"
-          className="bg-[#0f0f13] border border-white/10 shadow-2xl"
         >
           <CreateEventForm
             initialData={editingEvent}

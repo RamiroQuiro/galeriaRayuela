@@ -32,7 +32,7 @@ export default function ModalFoto({
   const [modoRecorte, setModoRecorte] = useState(false);
   const cropperRef = useRef<ReactCropperElement>(null);
   const [filtros, setFiltros] = useState<Filtros>(FILTROS_INICIALES);
-  
+
   // Print Timer State
   const [imprimiendo, setImprimiendo] = useState(false);
   const [tiempoRestante, setTiempoRestante] = useState(0);
@@ -71,14 +71,14 @@ export default function ModalFoto({
     setTiempoRestante(20); // 20 seconds cooldown
 
     const timer = setInterval(() => {
-        setTiempoRestante((prev) => {
-            if (prev <= 1) {
-                clearInterval(timer);
-                setImprimiendo(false);
-                return 0;
-            }
-            return prev - 1;
-        });
+      setTiempoRestante((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setImprimiendo(false);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
 
     const ventanaImpresion = window.open("", "_blank");
@@ -299,18 +299,23 @@ export default function ModalFoto({
               onClick={imprimirFoto}
               disabled={modoRecorte || imprimiendo}
               className={`w-full py-5 bg-linear-to-r from-neon-blue to-neon-purple text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:brightness-110 active:scale-95 transition-all shadow-[0_10px_30px_rgba(0,102,255,0.25)] flex items-center justify-center gap-3 ${
-                modoRecorte || imprimiendo ? "opacity-50 cursor-not-allowed grayscale" : ""
+                modoRecorte || imprimiendo
+                  ? "opacity-50 cursor-not-allowed grayscale"
+                  : ""
               }`}
             >
-              <Printer className={`w-5 h-5 ${imprimiendo ? 'animate-pulse' : ''}`} />
+              <Printer
+                className={`w-5 h-5 ${imprimiendo ? "animate-pulse" : ""}`}
+              />
               {imprimiendo ? `Imprimiendo (${tiempoRestante}s)` : "Imprimir"}
             </button>
             {imprimiendo && (
-                <p className="text-[10px] text-center text-neon-blue font-bold animate-pulse">
-                    ¡Tu foto se está procesando!
-                </p>
+              <p className="text-[10px] text-center text-neon-blue font-bold animate-pulse">
+                ¡Tu foto se está procesando!
+              </p>
             )}
           </div>
+        </div>
       </div>
     </div>
   );
