@@ -1,0 +1,96 @@
+---
+import { eq } from "drizzle-orm";
+import QRCode from "qrcode";
+import { db } from "../../../../db";
+import { events } from "../../../../db/schemas";
+import DashboarLayout from "../../../../layouts/DashboarLayout.astro";
+import { PosterGenerator } from "../../../../components/poster/PosterGenerator";
+
+const { id } = Astro.params;
+
+if (!id) return Astro.redirect("/dashboard");
+
+const event = await db
+  .select()
+  .from(events)
+  .where(eq(events.id, parseInt(id)));
+
+if (!event) return Astro.redirect("/dashboard");
+
+// 1. QR para la Galería Pública
+const publicUrl = `${Astro.url.origin}/events/${id}`;
+const galleryQrUri = await QRCode.toDataURL(publicUrl, {
+  width: 600,
+  margin: 2,
+  color: { dark: "#0f172a", light: "#ffffff" },
+});
+
+// 2. QR para Subir Fotos (Formulario)
+const uploadUrl = `${Astro.url.origin}/eventos/${event[0].codigoAcceso}/subir`;
+const uploadQrUri = await QRCode.toDataURL(uploadUrl, {
+  width: 600,
+  margin: 2,
+  color: { dark: "#0f172a", light: "#ffffff" },
+});
+---
+
+<DashboarLayout title={`Cartel QR - ${event[0].name}`}>
+  <div class="h-full flex flex-col p-6">
+    <PosterGenerator
+      client:load
+      event={event[0]}
+      galleryQrUri={galleryQrUri}
+      uploadQrUri={uploadQrUri}
+    />
+  </div>
+</DashboarLayout>
+
+<style is:global>
+  @media print {
+    /* Hide Dashboard layout elements during print */
+    nav,
+    aside,
+    header,
+    .no-print {
+      display: none !important;
+    }
+
+    body {
+      background: white !important;
+      color: black !important;
+      overflow: visible !important;
+    }
+
+    #app-main {
+      padding: 0 !important;
+      margin: 0 !important;
+      max-width: none !important;
+      width: 100% !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+
+    .print-container {
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      display: block !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+    }
+
+    #poster-area {
+      box-shadow: none !important;
+      width: 100% !important;
+      height: 100vh !important;
+      border: none !important;
+      margin: 0 !important;
+      page-break-after: always;
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+  }
+</style>

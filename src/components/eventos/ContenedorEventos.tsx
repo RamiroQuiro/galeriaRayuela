@@ -111,7 +111,7 @@ export default function ContenedorEventos({
                 {/* Primary Actions - The Flow */}
                 <div className="grid grid-cols-3 gap-2">
                   <a
-                    href={`/events/${event.id}/poster`}
+                    href={`/dashboard/eventos/${event.id}/poster`}
                     className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all group/btn"
                     title="Paso 2: Imprimir QR"
                   >

@@ -62,45 +62,45 @@ const Icon = iconNode;
   </dialog>
 </div>
 
-<script define:vars={{ id }}>
-  const openBtn = document.getElementById(`modal-open-${id}`);
-  const closeBtn = document.getElementById(`modal-close-${id}`);
-  const dialog = document.getElementById(`dialog-modal-${id}`);
+<script define:vars={{ id }} is:inline data-astro-rerun>
+  (() => {
+    const openBtn = document.getElementById(`modal-open-${id}`);
+    const closeBtn = document.getElementById(`modal-close-${id}`);
+    const dialog = document.getElementById(`dialog-modal-${id}`);
 
-  // Animations
-  const openModal = () => {
-    if (dialog) {
-      dialog.showModal();
-      document.body.style.overflow = "hidden";
-      // Add animation classes if needed, though Tailwind does most work
-    }
-  };
+    // Animations
+    const openModal = () => {
+      if (dialog) {
+        dialog.showModal();
+        document.body.style.overflow = "hidden";
+      }
+    };
 
-  const closeModal = () => {
-    if (dialog) {
-      dialog.close();
+    const closeModal = () => {
+      if (dialog) {
+        dialog.close();
+        document.body.style.overflow = "";
+      }
+    };
+
+    openBtn?.addEventListener("click", openModal);
+    closeBtn?.addEventListener("click", closeModal);
+
+    // Close on backdrop click
+    dialog?.addEventListener("click", (event) => {
+      if (event.target === dialog) {
+        closeModal();
+      }
+    });
+
+    // Handle ESC key or other close events
+    dialog?.addEventListener("close", () => {
       document.body.style.overflow = "";
-    }
-  };
+    });
 
-  openBtn?.addEventListener("click", openModal);
-  closeBtn?.addEventListener("click", closeModal);
-
-  // Close on backdrop click
-  dialog?.addEventListener("click", (event) => {
-    // Only close if clicking the dialog element itself (the backdrop),
-    // not the inner content div which propagates clicks
-    if (event.target === dialog) {
-      closeModal();
-    }
-  });
-
-  // Handle ESC key manually if needed for custom behavior,
-  // but <dialog> handles it by default.
-  // We just ensure overflow is reset.
-  dialog?.addEventListener("close", () => {
-    document.body.style.overflow = "";
-  });
+    // Support external triggering
+    document.addEventListener(`open-modal-${id}`, openModal);
+  })();
 </script>
 
 <style>
