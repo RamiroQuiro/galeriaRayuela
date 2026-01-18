@@ -6,6 +6,7 @@ export function createResponse<T>(
 ) {
   return new Response(
     JSON.stringify({
+      success: statusCode >= 200 && statusCode < 300,
       statusCode,
       message,
       data: data ?? null,

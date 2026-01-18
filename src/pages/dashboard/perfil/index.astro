@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import DashboarLayout from "../../../layouts/DashboarLayout.astro";
 import Button from "../../../components/ui/Button.astro";
 import { Store } from "lucide-astro";
+import { ConfigurarWhatsapp } from "../../../components/whatsapp/ConfigurarWhatsapp";
 
 const user = Astro.locals.user;
 
@@ -89,6 +90,10 @@ if (!user) {
         </div>
       </div>
     </form>
+
+    <div id="whatsapp" class="mt-12">
+      <ConfigurarWhatsapp client:load />
+    </div>
   </div>
 
   <script is:inline>

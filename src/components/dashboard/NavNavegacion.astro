@@ -4,6 +4,25 @@ const isActive = (path: string) =>
   currentPath === path
     ? "border-neon-blue text-white"
     : "border-transparent text-gray-500 hover:text-gray-300";
+
+import { db } from "../../db";
+import { whatsappSesiones } from "../../db/schemas";
+import { eq } from "drizzle-orm";
+
+const user = Astro.locals.user;
+let whatsappStatus = "no_configurado";
+
+if (user) {
+  const sesion = await db
+    .select()
+    .from(whatsappSesiones)
+    .where(eq(whatsappSesiones.usuarioId, user.id))
+    .get();
+
+  if (sesion) {
+    whatsappStatus = sesion.estado;
+  }
+}
 ---
 
 <div
@@ -27,5 +46,15 @@ const isActive = (path: string) =>
     class={`tab-btn px-4 py-4 text-[11px] font-black uppercase tracking-[0.2em] transition-all border-b-2 cursor-pointer whitespace-nowrap ${isActive("/dashboard/perfil")}`}
   >
     Perfil
+  </a>
+
+  <a
+    href="/dashboard/perfil#whatsapp"
+    class={`tab-btn px-4 py-4 text-[11px] font-black uppercase tracking-[0.2em] transition-all border-b-2 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-2 ${whatsappStatus === "activo" ? "text-green-400" : "text-gray-500"}`}
+  >
+    WhatsApp
+    <span
+      class={`flex h-2 w-2 rounded-full ${whatsappStatus === "activo" ? "bg-green-400 animate-pulse" : whatsappStatus === "pendiente" ? "bg-yellow-400" : "bg-gray-600"}`}
+    ></span>
   </a>
 </div>

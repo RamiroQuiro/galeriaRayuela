@@ -5,3 +5,5 @@ export * from "./images.schema";
 export * from "./planes.schema";
 export * from "./suscripciones.schema";
 export * from "./services.schema";
+export * from "./whatsapp_sesiones.schema";
+export * from "./whatsapp_subidas.schema";
