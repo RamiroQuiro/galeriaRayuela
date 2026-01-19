@@ -40,8 +40,22 @@ export const POST: APIRoute = async ({ locals }) => {
       console.log(`[API Vincular] Reiniciada sesión existente para: ${user.id}`);
     }
 
-    // Ya no llamamos a BaileysService.conectar(user.id) aquí,
-    // el Worker (whatsapp-worker.ts) detectará el estado 'pendiente' y lo hará.
+    // Ya no llamamos a BaileysService.conectar(user.id) aquí, ni esperamos al worker polling.
+    // Invocamos explícitamente al microservicio API.
+    try {
+      const response = await fetch("http://localhost:3001/session/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      
+      if (!response.ok) {
+        console.error("Error contactando whatsapp-server:", await response.text());
+        // No fallamos fatalmente para no bloquear al usuario, pero es warning.
+      }
+    } catch (apiError) {
+      console.error("No se pudo conectar con el microservicio de WhatsApp (¿está corriendo?):", apiError);
+    }
 
     return createResponse(200, "Solicitud de vinculación registrada");
   } catch (error) {

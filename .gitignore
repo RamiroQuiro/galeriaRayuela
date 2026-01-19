@@ -20,6 +20,8 @@ pnpm-debug.log*
 # sqlite database
 sqlite.db
 storage/
+sessions/
+whatsapp-server/sessions/
 
 
 

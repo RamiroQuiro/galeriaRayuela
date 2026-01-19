@@ -83,15 +83,19 @@ export class BaileysService {
       }
 
       if (connection === "close") {
-        const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
+        const error = lastDisconnect?.error as Boom;
+        const statusCode = error?.output?.statusCode;
         const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
-        console.log(`[WhatsApp] 🔌 Conexión cerrada. Reconectar: ${shouldReconnect}`);
+        
+        console.log(`[WhatsApp] 🔌 Conexión cerrada. StatusCode: ${statusCode}, Error: ${error?.message}`);
+        console.log(`[WhatsApp] 🤔 ¿Debería reconectar?: ${shouldReconnect}`);
         
         if (shouldReconnect) {
           // Esperar un poco antes de reconectar para evitar bucles rápidos
           await delay(2000); 
           this.conectar(usuarioId);
         } else {
+          console.log(`[WhatsApp] 🚫 Desconexión definitiva (Logged Out o razón fatal). Limpiando sesión.`);
           this.sockets.delete(usuarioId);
           await withRetry(async () => {
             await db.update(whatsappSesiones)

@@ -12,7 +12,20 @@ export const POST: APIRoute = async ({ locals }) => {
   }
 
   try {
-    await BaileysService.logout(user.id);
+    // Delegar al microservicio
+    try {
+      const response = await fetch("http://localhost:3001/session/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      
+      if (!response.ok) {
+        console.error("Error contactando whatsapp-server logout:", await response.text());
+      }
+    } catch (apiError) {
+      console.error("No se pudo conectar con el microservicio de WhatsApp:", apiError);
+    }
     return createResponse(200, "WhatsApp desvinculado correctamente");
   } catch (error) {
     console.error("Error al desvincular WhatsApp:", error);

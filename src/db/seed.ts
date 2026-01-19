@@ -130,7 +130,7 @@ const main = async () => {
         id: "vendedor-id",
         username: "vendedor",
         password: passwordHash,
-        tenantId: "vendor-test",
+        tenantId: "vendedor-test",
         email: "vendedor@test.com",
         nombreCompleto: "Vendedor de Prueba",
         planId: "premium",
