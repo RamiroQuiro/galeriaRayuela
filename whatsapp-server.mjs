@@ -94,8 +94,10 @@ async function procesarImagen(buffer, usuarioId, numeroTelefono, mimetype) {
 }
 
 
-// --- GESTIÓN DE CLIENTES BAILEYS ---
+// --- GESTIÓN DE LÍMITES Y CLIENTES ---
 const clients = new Map();
+const userLimits = new Map(); // numeroTelefono -> [timestamps]
+const LIMIT_CONFIG = { count: 2, minutes: 8 };
 
 async function getOrCreateBaileysClient(userId) {
   const id = String(userId);
@@ -193,11 +195,35 @@ async function getOrCreateBaileysClient(userId) {
        if (imageMsg) {
           const remoteJid = msg.key.remoteJid;
           
+          // 1. Ignorar grupos (si termina en @g.us o similar)
+          if (remoteJid.includes('@g.us')) {
+             console.log(`[WhatsApp] 👥 Ignorando imagen de grupo: ${remoteJid}`);
+             continue;
+          }
+
           // Ignorar estados de WhatsApp
           if (remoteJid === 'status@broadcast') continue;
 
           const numeroTelefono = remoteJid.split("@")[0];
-          console.log(`[WhatsApp] Imagen de ${numeroTelefono}`);
+          
+          // 2. Control de Rate Limit (2 fotos cada 8 min)
+          const now = Date.now();
+          const limitMs = LIMIT_CONFIG.minutes * 60 * 1000;
+          let userHistory = userLimits.get(numeroTelefono) || [];
+          
+          // Limpiar timestamps viejos
+          userHistory = userHistory.filter(ts => now - ts < limitMs);
+          
+          if (userHistory.length >= LIMIT_CONFIG.count) {
+             const minRestantes = Math.ceil((limitMs - (now - userHistory[0])) / 60000);
+             console.log(`[WhatsApp] ⏳ Límite alcanzado para ${numeroTelefono}. Reintento en ${minRestantes} min.`);
+             await sock.sendMessage(remoteJid, { 
+                text: `⏳ *Límite alcanzado:* Podés mandar hasta ${LIMIT_CONFIG.count} fotos cada ${LIMIT_CONFIG.minutes} minutos.\n\nIntentá de nuevo en unos minutos.` 
+             });
+             continue;
+          }
+
+          console.log(`[WhatsApp] 📥 Imagen recibida de ${numeroTelefono}`);
           
           const { downloadContentFromMessage } = await import('@whiskeysockets/baileys');
           const stream = await downloadContentFromMessage(imageMsg, 'image');
@@ -208,7 +234,9 @@ async function getOrCreateBaileysClient(userId) {
 
           const res = await procesarImagen(buffer, id, numeroTelefono, imageMsg.mimetype);
           if (res.success) {
-             await sock.sendMessage(remoteJid, { text: "✅ Foto recibida! Gracias." });
+             userHistory.push(now);
+             userLimits.set(numeroTelefono, userHistory);
+             await sock.sendMessage(remoteJid, { text: "✅ ¡Foto recibida y publicada! Gracias." });
           } else {
              console.error(`[ImageProcessor] ❌ Falla para ${numeroTelefono}: ${res.error}`);
              await sock.sendMessage(remoteJid, { text: `❌ Error guardando foto: ${res.error}` });

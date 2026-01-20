@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Cropper, type ReactCropperElement } from "react-cropper";
+import "cropperjs/dist/cropper.css";
 import type { Image } from "../../db/schemas";
 import { Crop, SlidersHorizontal, X, Printer, Check } from "lucide-react";
 
@@ -28,7 +29,6 @@ export default function ModalFoto({
   fotoSeleccionada: Image;
   setFotoSeleccionada: React.Dispatch<React.SetStateAction<Image | null>>;
 }) {
-  const [modoPolaroid, setModoPolaroid] = useState(true);
   const [modoRecorte, setModoRecorte] = useState(false);
   const cropperRef = useRef<ReactCropperElement>(null);
   const [filtros, setFiltros] = useState<Filtros>(FILTROS_INICIALES);
@@ -68,7 +68,7 @@ export default function ModalFoto({
     if (imprimiendo) return;
 
     setImprimiendo(true);
-    setTiempoRestante(20); // 20 seconds cooldown
+    setTiempoRestante(20);
 
     const timer = setInterval(() => {
       setTiempoRestante((prev) => {
@@ -87,45 +87,56 @@ export default function ModalFoto({
     ventanaImpresion.document.write(`
       <html>
         <head>
-          <title>Imprimir Foto - Galería Rayuela</title>
+          <title>Imprimir Polaroid - Galería Rayuela</title>
           <script src="https://cdn.tailwindcss.com"></script>
           <style>
+            @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
             body { 
               display: flex; 
               justify-content: center; 
               align-items: center; 
               height: 100vh; 
               margin: 0; 
-              background: #f3f4f6;
+              background: white;
             }
             .polaroid-print {
               background: white;
-              padding: 1rem 1rem 4rem 1rem;
-              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-              max-width: 80%;
+              padding: 1.5rem 1.5rem 5rem 1.5rem;
+              box-shadow: 0 0 0 1px #eee;
+              width: 100%;
+              max-width: 450px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
             }
             img {
               width: 100%;
-              height: auto;
+              aspect-ratio: 1/1;
+              object-fit: cover;
               filter: ${estilosFiltro.filter};
+            }
+            .caption {
+              margin-top: 1.5rem;
+              font-family: 'Caveat', cursive;
+              color: #333;
+              font-size: 2.5rem;
+              text-align: center;
+            }
+            @media print {
+              body { background: white; }
+              .polaroid-print { box-shadow: none; }
             }
           </style>
         </head>
         <body>
-          <div class="${modoPolaroid ? "polaroid-print" : ""}">
+          <div class="polaroid-print">
             <img src="${fotoSeleccionada?.path}" />
-            ${
-              modoPolaroid
-                ? `
-            <div style="text-align: center; margin-top: 1rem; font-family: cursive; color: #374151; font-size: 1.5rem;">
-              ${fotoSeleccionada?.nombreInvitado || "Recuerdo Inolvidable"}
+            <div class="caption">
+              ${fotoSeleccionada?.nombreInvitado || "Recuerdo"}
             </div>
-            `
-                : ""
-            }
           </div>
           <script>
-            setTimeout(() => { window.print(); window.close(); }, 500); 
+            setTimeout(() => { window.print(); window.close(); }, 800); 
           </script>
         </body>
       </html>
@@ -133,187 +144,168 @@ export default function ModalFoto({
     ventanaImpresion.document.close();
   };
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn p-4 md:p-10">
-      <div className="bg-gray-900 w-full max-w-5xl h-full max-h-[90vh] flex flex-col md:flex-row overflow-hidden text-gray-200 rounded-3xl border border-white/10 shadow-2xl relative">
-        {/* Botón Cerrar Flotante (para móvil) */}
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/90 backdrop-blur-md animate-fadeIn p-4 md:p-8">
+      <div className="bg-zinc-950 w-full max-w-5xl h-full max-h-[90vh] flex flex-col md:flex-row overflow-hidden text-zinc-100 rounded-[2.5rem] border border-white/10 shadow-2xl relative">
+        {/* Botón Cerrar Flotante */}
         <button
           onClick={cerrarEditor}
-          className="absolute cursor-pointer top-4 right-4 z-50 p-2 bg-black/20 hover:bg-black/40 rounded-full text-white md:hidden backdrop-blur-md border border-white/10"
+          className="absolute cursor-pointer top-6 right-6 z-110 p-3 bg-white/5 hover:bg-white/10 rounded-full text-white backdrop-blur-xl border border-white/10 transition-all active:scale-90"
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </button>
+
         {/* Área de Edición (Izquierda) */}
-        <div className="flex-1 relative bg-black/50 flex items-center justify-center p-8 overflow-auto">
-          <div className="relative transition-all duration-300 shadow-2xl bg-white p-4 pb-24 max-w-[85%] max-h-[85%] overflow-visible flex flex-col">
+        <div className="flex-[1.5] relative bg-black flex items-center justify-center p-4 md:p-12 overflow-hidden">
+          <div className="relative transition-all duration-500 shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-white p-4 pb-20 md:pb-28 w-full max-w-[450px] aspect-4/5 flex flex-col">
             {modoRecorte ? (
-              <Cropper
-                ref={cropperRef}
-                src={fotoSeleccionada.path}
-                style={{ height: "70vh", width: "100%" }}
-                // Cropper.js options
-                aspectRatio={1}
-                guides={true}
-                viewMode={1}
-                dragMode="move"
-                background={false}
-                className="max-h-[80vh]"
-                responsive={true}
-                autoCropArea={1}
-                checkOrientation={false}
-              />
+              <div className="w-full flex-1 overflow-hidden bg-zinc-100 relative">
+                <Cropper
+                  ref={cropperRef}
+                  src={fotoSeleccionada.path}
+                  style={{ height: "100%", width: "100%" }}
+                  aspectRatio={1}
+                  guides={true}
+                  viewMode={1}
+                  dragMode="move"
+                  background={false}
+                  responsive={true}
+                  autoCropArea={1}
+                  checkOrientation={false}
+                  zoomOnWheel={true}
+                  toggleDragModeOnDblclick={false}
+                />
+              </div>
             ) : (
-              <img
-                src={fotoSeleccionada.path}
-                className="w-full h-auto shadow-inner aspect-square object-cover"
-                style={estilosFiltro}
-                alt="Preview"
-              />
+              <div className="w-full h-full overflow-hidden bg-zinc-50 relative group">
+                <img
+                  src={fotoSeleccionada.path}
+                  className="w-full h-full object-cover transition-all duration-300"
+                  style={estilosFiltro}
+                  alt="Preview"
+                />
+                <div className="absolute inset-0 shadow-[inset_0_0_40px_rgba(0,0,0,0.05)] pointer-events-none"></div>
+              </div>
             )}
 
-            <p className="text-center font-cursive text-gray-800 mt-6 text-3xl font-normal absolute bottom-8 left-0 right-0">
+            <p className="text-center font-serif italic text-zinc-800 mt-6 md:mt-8 text-3xl md:text-5xl font-bold absolute bottom-6 md:bottom-10 left-0 right-0 tracking-tight">
               {fotoSeleccionada.nombreInvitado || "Recuerdo"}
             </p>
           </div>
         </div>
 
         {/* Panel Lateral derecho */}
-        <div className="w-full md:w-80 bg-black/20 backdrop-blur-2xl border-l border-white/5 p-6 flex flex-col gap-6 overflow-y-auto z-10">
-          <div className="flex justify-between items-center pb-6 border-b border-white/5">
-            <div className="flex items-center gap-2">
-              <SlidersHorizontal className="w-4 h-4 text-neon-blue" />
-              <h3 className="font-black text-white text-xs tracking-[0.2em] uppercase">
-                Edición
-              </h3>
-            </div>
-            <button
-              onClick={cerrarEditor}
-              className="p-2 hover:bg-white/5 rounded-xl text-gray-400 hover:text-white transition-all hidden md:block"
-            >
-              <X className="w-6 h-6" />
-            </button>
+        <div className="w-full md:w-96 bg-zinc-900/50 backdrop-blur-3xl border-l border-white/5 p-8 flex flex-col gap-8 overflow-y-auto">
+          <div className="flex items-center gap-3">
+            <SlidersHorizontal className="w-5 h-5 text-blue-500" />
+            <h3 className="font-black text-white text-sm tracking-[0.2em] uppercase">
+              Laboratorio
+            </h3>
           </div>
 
           {/* Botón Activar Recorte */}
-          <div>
+          <div className="space-y-4">
             {!modoRecorte ? (
               <button
                 onClick={() => setModoRecorte(true)}
-                className="w-full py-3 px-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border border-white/10 bg-white/5 text-gray-300 hover:border-white/40 hover:text-white flex items-center justify-center gap-2"
+                className="w-full py-4 px-6 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all border border-white/10 bg-white/5 text-zinc-300 hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-white flex items-center justify-center gap-3 group"
               >
-                <Crop className="w-4 h-4" />
-                Recortar
+                <Crop className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
+                Ajustar Encuadre
               </button>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={confirmarRecorte}
-                  className="w-full py-3 px-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all bg-neon-green text-black hover:brightness-110 flex items-center justify-center gap-2"
+                  className="w-full py-4 px-6 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all bg-emerald-500 text-black hover:bg-emerald-400 flex items-center justify-center gap-2"
                 >
                   <Check className="w-4 h-4" />
-                  Aplicar
+                  Listo
                 </button>
                 <button
                   onClick={() => setModoRecorte(false)}
-                  className="w-full py-3 px-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all bg-white/5 text-gray-300 hover:bg-white/10 flex items-center justify-center gap-2 border border-white/10"
+                  className="w-full py-4 px-6 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all bg-zinc-800 text-zinc-300 hover:bg-zinc-700 flex items-center justify-center gap-2 border border-white/5"
                 >
                   <X className="w-4 h-4" />
-                  Mala mía
+                  Cancelar
                 </button>
               </div>
-            )}
-            {modoRecorte && (
-              <p className="text-[10px] text-gray-500 mt-3 text-center uppercase font-bold tracking-widest">
-                Ajusta el área de recorte
-              </p>
             )}
           </div>
 
-          {/* Filtros - Solo visibles si NO estamos recortando */}
+          {/* Filtros */}
           {!modoRecorte && (
-            <div className="space-y-6 animate-fadeIn">
-              <div className="flex items-center justify-between pb-2">
-                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                  Ajustes de Color
-                </span>
+            <div className="space-y-8 animate-fadeIn">
+              <div className="grid grid-cols-1 gap-6">
+                <ControlSlider
+                  label="BRILLO"
+                  valor={filtros.brillo}
+                  setValor={(v) =>
+                    setFiltros((f: any) => ({ ...f, brillo: v }))
+                  }
+                  min={50}
+                  max={150}
+                />
+                <ControlSlider
+                  label="CONTRASTE"
+                  valor={filtros.contraste}
+                  setValor={(v) =>
+                    setFiltros((f: any) => ({ ...f, contraste: v }))
+                  }
+                  min={50}
+                  max={150}
+                />
+                <ControlSlider
+                  label="SATURACIÓN"
+                  valor={filtros.saturacion}
+                  setValor={(v) =>
+                    setFiltros((f: any) => ({ ...f, saturacion: v }))
+                  }
+                  min={0}
+                  max={200}
+                />
               </div>
 
-              <ControlSlider
-                label="BRILLO"
-                valor={filtros.brillo}
-                setValor={(v) => setFiltros((f: any) => ({ ...f, brillo: v }))}
-                min={0}
-                max={200}
-              />
-              <ControlSlider
-                label="CONTRASTE"
-                valor={filtros.contraste}
-                setValor={(v) =>
-                  setFiltros((f: any) => ({ ...f, contraste: v }))
-                }
-                min={0}
-                max={200}
-              />
-              <ControlSlider
-                label="SATURACIÓN"
-                valor={filtros.saturacion}
-                setValor={(v) =>
-                  setFiltros((f: any) => ({ ...f, saturacion: v }))
-                }
-                min={0}
-                max={200}
-              />
-              <ControlSlider
-                label="SEPIA"
-                valor={filtros.sepia}
-                setValor={(v) => setFiltros((f: any) => ({ ...f, sepia: v }))}
-                min={0}
-                max={100}
-              />
-
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                  BLANCO Y NEGRO
-                </span>
-                <button
-                  onClick={() =>
-                    setFiltros((f: any) => ({ ...f, byn: !f.byn }))
-                  }
-                  className={`w-12 h-6 rounded-full transition-all duration-300 ${
-                    filtros.byn
-                      ? "bg-neon-blue shadow-[0_0_15px_rgba(0,102,255,0.4)]"
-                      : "bg-white/10"
-                  } relative border border-white/5`}
-                >
-                  <div
-                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-all duration-300 shadow-xl ${
-                      filtros.byn ? "translate-x-6 bg-white" : "bg-gray-500"
-                    }`}
-                  />
-                </button>
+              <div className="pt-4 space-y-4">
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                    Blanco y Negro
+                  </span>
+                  <button
+                    onClick={() =>
+                      setFiltros((f: any) => ({ ...f, byn: !f.byn }))
+                    }
+                    className={`w-12 h-6 rounded-full transition-all duration-500 ${
+                      filtros.byn ? "bg-blue-600" : "bg-zinc-700"
+                    } relative`}
+                  >
+                    <div
+                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-all duration-300 ${
+                        filtros.byn ? "translate-x-6" : ""
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
-          <div className="mt-auto space-y-4 pt-8 border-t border-white/5">
+          <div className="mt-auto pt-8 border-t border-white/5">
             <button
               onClick={imprimirFoto}
               disabled={modoRecorte || imprimiendo}
-              className={`w-full py-5 bg-linear-to-r from-neon-blue to-neon-purple text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:brightness-110 active:scale-95 transition-all shadow-[0_10px_30px_rgba(0,102,255,0.25)] flex items-center justify-center gap-3 ${
+              className={`w-full py-6 bg-linear-to-br from-blue-600 to-indigo-700 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] hover:brightness-110 active:scale-[0.98] transition-all shadow-xl flex items-center justify-center gap-4 ${
                 modoRecorte || imprimiendo
                   ? "opacity-50 cursor-not-allowed grayscale"
                   : ""
               }`}
             >
               <Printer
-                className={`w-5 h-5 ${imprimiendo ? "animate-pulse" : ""}`}
+                className={`w-5 h-5 ${imprimiendo ? "animate-spin" : ""}`}
               />
-              {imprimiendo ? `Imprimiendo (${tiempoRestante}s)` : "Imprimir"}
+              {imprimiendo
+                ? `Esperando (${tiempoRestante}s)`
+                : "Imprimir Polaroid"}
             </button>
-            {imprimiendo && (
-              <p className="text-[10px] text-center text-neon-blue font-bold animate-pulse">
-                ¡Tu foto se está procesando!
-              </p>
-            )}
           </div>
         </div>
       </div>
