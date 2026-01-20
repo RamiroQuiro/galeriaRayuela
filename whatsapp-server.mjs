@@ -27,11 +27,13 @@ const client = createClient({
   url: process.env.TURSO_DB_URL || 'file:sqlite.db', 
   authToken: process.env.TURSO_DB_AUTH_TOKEN,
 });
+const ADJETIVOS = ['Super', 'Power', 'Magic', 'Happy', 'Cool', 'Star', 'Mega', 'Iron', 'Top', 'Fast', 'Epic', 'Flash', 'Neon', 'Gold', 'Wild', 'Chill', 'Pro', 'Max', 'Ultra', 'Smart'];
 const db = drizzle(client, { schema });
 
 // --- PROCESADOR DE IMÁGENES (Minimalista) ---
 async function procesarImagen(buffer, usuarioId, numeroTelefono, mimetype) {
   try {
+    const alias = `${ADJETIVOS[Math.floor(Math.random() * ADJETIVOS.length)]}_Guest`;
     // 0. Obtener el tenantId real del usuario
     const userRecord = await db
         .select()
@@ -73,7 +75,7 @@ async function procesarImagen(buffer, usuarioId, numeroTelefono, mimetype) {
       eventId: evento.id,
       path: virtualPath,
       thumbnail: null, 
-      nombreInvitado: `WhatsApp (${numeroTelefono})`,
+      nombreInvitado: alias,
       tamanioBytes: buffer.length
     });
 

@@ -28,7 +28,7 @@ export default function ModalFoto({
   fotoSeleccionada: Image;
   setFotoSeleccionada: React.Dispatch<React.SetStateAction<Image | null>>;
 }) {
-  const [modoPolaroid, setModoPolaroid] = useState(false);
+  const [modoPolaroid, setModoPolaroid] = useState(true);
   const [modoRecorte, setModoRecorte] = useState(false);
   const cropperRef = useRef<ReactCropperElement>(null);
   const [filtros, setFiltros] = useState<Filtros>(FILTROS_INICIALES);

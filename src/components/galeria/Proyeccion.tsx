@@ -237,7 +237,7 @@ export default function ProyeccionGaleria({
           Cargando galería...
         </div>
 
-        <style jsx>{`
+        <style>{`
           @keyframes pulse {
             0%,
             100% {
@@ -349,7 +349,7 @@ export default function ProyeccionGaleria({
           opacity: saliendo ? 0 : 1,
           transform: saliendo ? "scale(1.05)" : "scale(1)",
           transition: "all 2s cubic-bezier(0.4, 0, 0.2, 1)",
-          padding: 0, // Removed padding to maximize size
+          padding: 0,
         }}
       >
         <img
@@ -386,8 +386,7 @@ export default function ProyeccionGaleria({
         />
       )}
 
-      {/* Animaciones CSS */}
-      <style jsx>{`
+      <style>{`
         @keyframes entradaSuave {
           0% {
             opacity: 0;

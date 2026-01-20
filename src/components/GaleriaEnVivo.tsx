@@ -62,7 +62,7 @@ export function GaleriaEnVivo({ eventoId, imagenesIniciales }: Props) {
             <img
               src={img.path}
               alt="Foto del evento"
-              className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700 opacity-80 group-hover:opacity-100"
+              className="w-full h-full object-cover grayscale-30 group-hover:grayscale-0 transition-all duration-700 opacity-80 group-hover:opacity-100"
               loading="lazy"
             />
 
@@ -76,7 +76,7 @@ export function GaleriaEnVivo({ eventoId, imagenesIniciales }: Props) {
             {img.nombreInvitado && (
               <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md p-3 rounded-2xl border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-linear-to-br from-neon-blue to-neon-purple p-[1px]">
+                  <div className="w-5 h-5 rounded-full bg-linear-to-br from-neon-blue to-neon-purple p-px">
                     <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
                       <ImageIcon className="w-2.5 h-2.5 text-white" />
                     </div>
