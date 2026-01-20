@@ -68,17 +68,21 @@ if (Astro.locals.user) {
       const formData = new FormData(form);
       const data = Object.fromEntries(formData);
 
+      console.log("Intentando login...");
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
+      console.log("Respuesta login:", res.status);
       if (res.ok) {
         const json = await res.json();
+        console.log("Login exitoso, redirigiendo...", json.data?.redirect);
         window.location.href = json.data?.redirect || "/dashboard";
       } else {
         const json = await res.json();
+        console.error("Error login:", json);
         if (error) {
           error.textContent = json.message || "Login failed";
           error.classList.remove("hidden");
