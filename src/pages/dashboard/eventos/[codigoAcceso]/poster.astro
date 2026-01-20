@@ -1,8 +1,8 @@
 ---
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import QRCode from "qrcode";
 import { db } from "../../../../db";
-import { events } from "../../../../db/schemas";
+import { events, whatsappSesiones } from "../../../../db/schemas";
 import DashboarLayout from "../../../../layouts/DashboarLayout.astro";
 import { PosterGenerator } from "../../../../components/poster/PosterGenerator";
 
@@ -32,6 +32,28 @@ const uploadQrUri = await QRCode.toDataURL(uploadUrl, {
   margin: 2,
   color: { dark: "#0f172a", light: "#ffffff" },
 });
+
+// 3. QR para WhatsApp (Opcional)
+let whatsappQrUri = "";
+const session = await db
+  .select()
+  .from(whatsappSesiones)
+  .where(
+    and(
+      eq(whatsappSesiones.usuarioId, Astro.locals.user?.id || ""),
+      eq(whatsappSesiones.estado, "activo"),
+    ),
+  )
+  .get();
+
+if (session && session.numeroWhatsapp) {
+  const waUrl = `https://wa.me/${session.numeroWhatsapp.replace(/\D/g, "")}`;
+  whatsappQrUri = await QRCode.toDataURL(waUrl, {
+    width: 600,
+    margin: 2,
+    color: { dark: "#0f172a", light: "#ffffff" },
+  });
+}
 ---
 
 <DashboarLayout title={`Cartel QR - ${event[0].name}`}>
@@ -41,6 +63,7 @@ const uploadQrUri = await QRCode.toDataURL(uploadUrl, {
       event={event[0]}
       galleryQrUri={galleryQrUri}
       uploadQrUri={uploadQrUri}
+      whatsappQrUri={whatsappQrUri}
     />
   </div>
 </DashboarLayout>

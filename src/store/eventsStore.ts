@@ -10,6 +10,7 @@ export interface Event {
   estado: string | null;
   createdAt: Date | null;
   tenantId: string | null;
+  whatsappActivo: number | null;
 }
 
 export const eventsStore = atom<Event[]>([]);
@@ -39,8 +40,12 @@ export const deleteEventStore = (eventId: number) => {
 export const traerEventos = async () => {
   try {
     const response = await fetch("/api/events");
-    const events = await response.json();
-    setEvents(events);
+    const resData = await response.json();
+    if (resData.success && Array.isArray(resData.data)) {
+      setEvents(resData.data);
+    } else {
+      console.error("Error en respuesta de eventos:", resData.message);
+    }
   } catch (error) {
     console.error("Error fetching events:", error);
   }

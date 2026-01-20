@@ -9,7 +9,16 @@ import {
   setEvents,
   traerEventos,
 } from "../../store/eventsStore";
-import { Calendar, Plus, Printer, Eye, Edit, Trash } from "lucide-react";
+import {
+  Calendar,
+  Plus,
+  Printer,
+  Eye,
+  Edit,
+  Trash,
+  Smartphone,
+} from "lucide-react";
+import Button from "../ui/Button";
 // Button.astro import removed as it cannot be used in React
 
 interface ContenedorEventosProps {
@@ -39,6 +48,23 @@ export default function ContenedorEventos({
       } catch (e) {
         console.error(e);
       }
+    }
+  };
+
+  const handleToggleWhatsApp = async (id: number) => {
+    try {
+      const res = await fetch(`/api/eventos/${id}/toggle-whatsapp`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        traerEventos();
+      } else {
+        alert(data.message || "Error al activar WhatsApp");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error de conexión");
     }
   };
 
@@ -89,8 +115,8 @@ export default function ContenedorEventos({
                     event.estado === "activo"
                       ? "bg-green-500/20 text-green-200"
                       : event.estado === "finalizado"
-                      ? "bg-gray-500/20 text-gray-200"
-                      : "bg-yellow-500/20 text-yellow-200"
+                        ? "bg-gray-500/20 text-gray-200"
+                        : "bg-yellow-500/20 text-yellow-200"
                   }`}
                 >
                   {event.estado?.toUpperCase()}
@@ -100,12 +126,34 @@ export default function ContenedorEventos({
 
             {/* Event details */}
             <div className="p-6 flex-1 flex flex-col">
-              <h3
-                className="text-xl font-bold text-white mb-2 truncate"
-                title={event.name}
-              >
-                {event.name}
-              </h3>
+              <div className="flex justify-between items-start mb-2">
+                <h3
+                  className="text-xl font-bold text-white truncate pr-2"
+                  title={event.name}
+                >
+                  {event.name}
+                </h3>
+                <Button
+                  onClick={() => handleToggleWhatsApp(event.id)}
+                  title={
+                    event.whatsappActivo
+                      ? "WhatsApp Vinculado"
+                      : "Vincular WhatsApp"
+                  }
+                  className={`p-2 rounded-xl transition-all border flex items-center gap-1.5 ${
+                    event.whatsappActivo
+                      ? "bg-green-500/20 text-green-400 border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.2)]"
+                      : "bg-white/5 text-gray-500 border-white/5 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Smartphone
+                    className={`h-4 w-4 ${event.whatsappActivo ? "animate-pulse" : ""}`}
+                  />
+                  <span className="text-[10px] font-black uppercase tracking-tighter">
+                    WhatsApp {event.whatsappActivo ? "activado" : "desactivado"}
+                  </span>
+                </Button>
+              </div>
 
               <div className="mt-auto border-t border-white/10 pt-4 flex flex-col gap-3">
                 {/* Primary Actions - The Flow */}

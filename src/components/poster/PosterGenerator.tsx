@@ -11,14 +11,16 @@ interface PosterGeneratorProps {
   };
   galleryQrUri: string;
   uploadQrUri: string;
+  whatsappQrUri?: string;
 }
 
-type LayoutType = "dual" | "gallery" | "upload" | "centerpiece";
+type LayoutType = "dual" | "gallery" | "upload" | "centerpiece" | "whatsapp";
 
 export const PosterGenerator: React.FC<PosterGeneratorProps> = ({
   event,
   galleryQrUri,
   uploadQrUri,
+  whatsappQrUri,
 }) => {
   const [layout, setLayout] = useState<LayoutType>("dual");
 
@@ -81,6 +83,18 @@ export const PosterGenerator: React.FC<PosterGeneratorProps> = ({
             >
               Centro Mesa
             </button>
+            {whatsappQrUri && (
+              <button
+                onClick={() => setLayout("whatsapp")}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all uppercase ${
+                  layout === "whatsapp"
+                    ? "bg-green-500 text-white shadow-lg shadow-green-500/20"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                WhatsApp
+              </button>
+            )}
           </div>
 
           <button
@@ -106,10 +120,11 @@ export const PosterGenerator: React.FC<PosterGeneratorProps> = ({
             <CartelCentroMesa event={event} uploadQrUri={uploadQrUri} />
           ) : (
             <PosterStandard
-              variant={layout}
+              variant={layout as any}
               event={event}
               galleryQrUri={galleryQrUri}
               uploadQrUri={uploadQrUri}
+              whatsappQrUri={whatsappQrUri}
             />
           )}
         </div>

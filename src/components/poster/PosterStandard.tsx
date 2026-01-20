@@ -1,7 +1,7 @@
 import React from "react";
-import { Share2, Eye } from "lucide-react";
+import { Share2, Eye, MessageSquare } from "lucide-react";
 
-type StandardVariant = "dual" | "gallery" | "upload";
+type StandardVariant = "dual" | "gallery" | "upload" | "whatsapp";
 
 interface PosterStandardProps {
   variant: StandardVariant;
@@ -10,6 +10,7 @@ interface PosterStandardProps {
   };
   galleryQrUri: string;
   uploadQrUri: string;
+  whatsappQrUri?: string;
 }
 
 export const PosterStandard: React.FC<PosterStandardProps> = ({
@@ -17,6 +18,7 @@ export const PosterStandard: React.FC<PosterStandardProps> = ({
   event,
   galleryQrUri,
   uploadQrUri,
+  whatsappQrUri,
 }) => {
   return (
     <>
@@ -60,6 +62,22 @@ export const PosterStandard: React.FC<PosterStandardProps> = ({
               Comparte tus mejores momentos en
             </p>
             <div className="inline-block px-8 py-4 bg-neon-purple rounded-full">
+              <p className="text-4xl font-bold text-white uppercase italic tracking-widest">
+                {event.name}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {variant === "whatsapp" && (
+          <div className="poster-header-whatsapp">
+            <h2 className="text-6xl font-black tracking-tighter text-slate-900 uppercase mb-4">
+              ¡MANDA POR WHATSAPP!
+            </h2>
+            <p className="text-2xl text-slate-500 font-medium mb-6">
+              Envía tus fotos directamente al evento
+            </p>
+            <div className="inline-block px-8 py-4 bg-green-500 rounded-full shadow-lg shadow-green-200">
               <p className="text-4xl font-bold text-white uppercase italic tracking-widest">
                 {event.name}
               </p>
@@ -132,6 +150,30 @@ export const PosterStandard: React.FC<PosterStandardProps> = ({
                 </p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* WhatsApp QR */}
+        {variant === "whatsapp" && whatsappQrUri && (
+          <div className="w-fit flex flex-col items-center gap-4">
+            <div className="relative p-6 bg-slate-50 rounded-4xl border-4 border-slate-100 shadow-sm scale-125 mx-12 my-6">
+              <img
+                src={whatsappQrUri}
+                alt="QR WhatsApp"
+                className="w-[85mm] h-[85mm] object-contain"
+              />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-2xl shadow-lg border-2 border-slate-100">
+                <MessageSquare className="h-8 w-8 text-green-500" />
+              </div>
+            </div>
+            <div>
+              <p className="text-2xl font-black text-slate-900 uppercase tracking-tight">
+                Mandar por WhatsApp
+              </p>
+              <p className="text-sm text-slate-500 font-bold">
+                Envía tus fotos al instante
+              </p>
+            </div>
           </div>
         )}
       </div>

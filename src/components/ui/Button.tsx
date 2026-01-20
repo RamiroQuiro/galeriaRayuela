@@ -3,7 +3,7 @@ import { cn } from "../../lib/utils";
 
 // Definimos las variantes que el botón puede tener
 const buttonVariants = {
-  base: "inline-flex items-center justify-center rounded-md text-sm font-thin transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 w-fit disabled:opacity-50 disabled:cursor-not-allowed duration-200",
+  base: "inline-flex items-center justify-center cursor-pointer rounded-md text-sm font-thin transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 w-fit disabled:opacity-50 disabled:cursor-not-allowed duration-200",
   variants: {
     variant: {
       primary:
@@ -46,8 +46,7 @@ const buttonVariants = {
 };
 
 // Definimos las props del componente para que TypeScript nos ayude
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: keyof typeof buttonVariants.variants.variant;
   size?: keyof typeof buttonVariants.variants.size;
   href?: string;
@@ -62,7 +61,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         variant || buttonVariants.defaultVariants.variant
       ],
       buttonVariants.variants.size[size || buttonVariants.defaultVariants.size],
-      className
+      className,
     );
 
     return href ? (
@@ -70,7 +69,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ) : (
       <button className={finalClassName} ref={ref} {...props} />
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

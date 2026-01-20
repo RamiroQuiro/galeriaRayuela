@@ -24,6 +24,9 @@ export const events = sqliteTable("events", {
   // Estado del evento: 'activo', 'finalizado', 'pausado'
   estado: text("estado").default("activo"),
 
+  // Activación de WhatsApp específica para este evento
+  whatsappActivo: integer("whatsapp_activo").default(0), // 0: inactivo, 1: activo
+
   // Fecha del evento (opcional)
   fechaEvento: text("fecha_evento"),
 

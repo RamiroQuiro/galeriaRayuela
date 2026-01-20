@@ -13,7 +13,7 @@ import {
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Buffer } from "node:buffer";
-import { eq } from "drizzle-orm";
+import { eq, and, ne, desc } from "drizzle-orm";
 
 export const POST: APIRoute = async ({ request, locals }) => {
   if (!locals.user) {
@@ -113,6 +113,31 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   } catch (error) {
     console.error("Error al crear evento:", error);
+    return createResponse(500, "Error interno del servidor");
+  }
+};
+
+export const GET: APIRoute = async ({ locals }) => {
+  if (!locals.user || !locals.tenantId) {
+    return createResponse(401, "No autorizado");
+  }
+
+  try {
+    const myEvents = await db
+      .select()
+      .from(events)
+      .where(
+        and(
+          eq(events.tenantId, locals.tenantId), 
+          ne(events.estado, "eliminado")
+        )
+      )
+      .orderBy(desc(events.created_at))
+      .all();
+
+    return createResponse(200, "Eventos recuperados", myEvents);
+  } catch (error) {
+    console.error("Error al obtener eventos:", error);
     return createResponse(500, "Error interno del servidor");
   }
 };

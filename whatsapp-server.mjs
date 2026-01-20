@@ -43,19 +43,19 @@ async function procesarImagen(buffer, usuarioId, numeroTelefono, mimetype) {
         
     const effectiveTenantId = userRecord?.tenantId || usuarioId;
 
-    // 1. Buscar evento activo PRIMERO para saber dónde guardar
+    // 1. Buscar evento VINCULADO a WhatsApp específicamente
     const evento = await db
         .select()
         .from(schema.events)
         .where(
             and(
-                eq(schema.events.estado, 'activo'), 
+                eq(schema.events.whatsappActivo, 1), 
                 eq(schema.events.tenantId, effectiveTenantId)
             )
         )
         .get();
 
-    if (!evento) return { success: false, error: 'No hay evento activo' };
+    if (!evento) return { success: false, error: 'No tienes ningún evento con WhatsApp vinculado. Actívalo en el Dashboard.' };
 
     // 2. Preparar ruta dinámica: storage/uploads/{tenantId}/{codigoAcceso}/galeria/
     const imagesDir = path.join(process.cwd(), 'storage', 'uploads', evento.tenantId, evento.codigoAcceso, 'galeria');
