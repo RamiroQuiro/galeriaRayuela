@@ -6,19 +6,19 @@ import { events } from "../../../../db/schemas";
 import DashboarLayout from "../../../../layouts/DashboarLayout.astro";
 import { PosterGenerator } from "../../../../components/poster/PosterGenerator";
 
-const { id } = Astro.params;
+const { codigoAcceso } = Astro.params;
 
-if (!id) return Astro.redirect("/dashboard");
+if (!codigoAcceso) return Astro.redirect("/dashboard");
 
 const event = await db
   .select()
   .from(events)
-  .where(eq(events.id, parseInt(id)));
+  .where(eq(events.codigoAcceso, codigoAcceso));
 
-if (!event) return Astro.redirect("/dashboard");
+if (!event || event.length === 0) return Astro.redirect("/dashboard");
 
 // 1. QR para la Galería Pública
-const publicUrl = `${Astro.url.origin}/events/${id}`;
+const publicUrl = `${Astro.url.origin}/events/${codigoAcceso}`;
 const galleryQrUri = await QRCode.toDataURL(publicUrl, {
   width: 600,
   margin: 2,

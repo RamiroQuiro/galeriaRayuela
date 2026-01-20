@@ -81,7 +81,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
         "storage",
         "uploads",
         nuevoEvento.tenantId,
-        nuevoEvento.id.toString(),
+        nuevoEvento.codigoAcceso,
         "portada"
       );
       
@@ -98,7 +98,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
       await fs.writeFile(rutaArchivo, Buffer.from(buffer));
       
-      const virtualPath = `/uploads/${nuevoEvento.tenantId}/${nuevoEvento.id}/portada/${nombreArchivo}`;
+      const virtualPath = `/uploads/${nuevoEvento.tenantId}/${nuevoEvento.codigoAcceso}/portada/${nombreArchivo}`;
       
       await db
         .update(events)

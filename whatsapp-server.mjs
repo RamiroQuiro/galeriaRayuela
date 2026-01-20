@@ -32,42 +32,52 @@ const db = drizzle(client, { schema });
 // --- PROCESADOR DE IMÁGENES (Minimalista) ---
 async function procesarImagen(buffer, usuarioId, numeroTelefono, mimetype) {
   try {
-    const imagesDir = path.join(process.cwd(), 'storage', 'uploads');
-    if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
+    // 0. Obtener el tenantId real del usuario
+    const userRecord = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.id, usuarioId))
+        .get();
+        
+    const effectiveTenantId = userRecord?.tenantId || usuarioId;
 
-    const ext = mimetype.split('/')[1] || 'jpg';
-    const filename = `whatsapp_${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
-    const filepath = path.join(imagesDir, filename);
-
-    fs.writeFileSync(filepath, buffer);
-    console.log(`[ImageProcessor] Imagen guardada en: ${filepath}`);
-
-    // Buscar evento activo
+    // 1. Buscar evento activo PRIMERO para saber dónde guardar
     const evento = await db
         .select()
         .from(schema.events)
         .where(
             and(
                 eq(schema.events.estado, 'activo'), 
-                // Buscamos eventos que pertenezcan al usuario vinculado O a 'vendedor-id' (por si acaso)
-                sql`(${schema.events.tenantId} = ${usuarioId} OR ${schema.events.tenantId} = 'vendedor-id')`
+                eq(schema.events.tenantId, effectiveTenantId)
             )
         )
         .get();
 
     if (!evento) return { success: false, error: 'No hay evento activo' };
 
-    // Guardar en DB respetando el esquema real (src/db/schemas/images.schema.ts)
+    // 2. Preparar ruta dinámica: storage/uploads/{tenantId}/{codigoAcceso}/galeria/
+    const imagesDir = path.join(process.cwd(), 'storage', 'uploads', evento.tenantId, evento.codigoAcceso, 'galeria');
+    if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
+
+    const ext = mimetype.split('/')[1] || 'jpg';
+    const filename = `whatsapp_${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+    const filepath = path.join(imagesDir, filename);
+
+    // 3. Guardar archivo fisicamente
+    fs.writeFileSync(filepath, buffer);
+    console.log(`[ImageProcessor] Imagen guardada en: ${filepath} (Tenant: ${effectiveTenantId})`);
+
+    // 4. Guardar en DB respetando el esquema real
+    const virtualPath = `/uploads/${evento.tenantId}/${evento.codigoAcceso}/galeria/${filename}`;
     await db.insert(schema.images).values({
       eventId: evento.id,
-      path: `/uploads/${filename}`,
-      // No generamos thumbnail real por ahora, usamos la misma o null
+      path: virtualPath,
       thumbnail: null, 
       nombreInvitado: `WhatsApp (${numeroTelefono})`,
       tamanioBytes: buffer.length
     });
 
-    // Registrar subida en rate limiter (simplificado)
+    // Registrar subida
     await db.insert(schema.whatsappSubidas).values({
       eventoId: evento.id,
       numeroTelefono: numeroTelefono,
@@ -180,6 +190,10 @@ async function getOrCreateBaileysClient(userId) {
        const imageMsg = msg.message.imageMessage;
        if (imageMsg) {
           const remoteJid = msg.key.remoteJid;
+          
+          // Ignorar estados de WhatsApp
+          if (remoteJid === 'status@broadcast') continue;
+
           const numeroTelefono = remoteJid.split("@")[0];
           console.log(`[WhatsApp] Imagen de ${numeroTelefono}`);
           

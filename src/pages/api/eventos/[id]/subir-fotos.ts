@@ -83,7 +83,7 @@ export const POST: APIRoute = async ({ params, request }) => {
       "storage",
       "uploads",
       evento.tenantId,
-      evento.id.toString(),
+      evento.codigoAcceso,
       "galeria"
     );
     
@@ -111,7 +111,7 @@ export const POST: APIRoute = async ({ params, request }) => {
         .insert(images)
         .values({
           eventId: evento.id,
-          path: `/uploads/${evento.tenantId}/${evento.id}/galeria/${nombreArchivo}`,
+          path: `/uploads/${evento.tenantId}/${evento.codigoAcceso}/galeria/${nombreArchivo}`,
           nombreInvitado: nombreInvitado || null,
           tamanioBytes: buffer.byteLength,
         })

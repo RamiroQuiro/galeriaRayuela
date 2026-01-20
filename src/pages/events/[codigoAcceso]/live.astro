@@ -4,27 +4,29 @@ import { images, events } from "../../../db/schemas";
 import { eq, desc } from "drizzle-orm";
 import Proyeccion from "../../../components/galeria/Proyeccion";
 
-const { id } = Astro.params;
+const { codigoAcceso } = Astro.params;
 
-if (!id) {
+if (!codigoAcceso) {
   return Astro.redirect("/404");
 }
 
 const event = await db
   .select()
   .from(events)
-  .where(eq(events.id, Number(id)))
+  .where(eq(events.codigoAcceso, codigoAcceso))
   .get();
 
 if (!event) {
   return Astro.redirect("/404");
 }
 
+const eventId = event.id;
+
 // Fetch initial images
 const eventImages = await db
   .select()
   .from(images)
-  .where(eq(images.eventId, Number(id)))
+  .where(eq(images.eventId, eventId))
   .orderBy(desc(images.created_at))
   .all();
 
@@ -52,7 +54,7 @@ const formattedImages = eventImages.map((img) => ({
   <body class="bg-black m-0 overflow-hidden">
     <Proyeccion
       client:only="react"
-      eventId={Number(id)}
+      eventId={eventId}
       initialImages={formattedImages}
     />
   </body>

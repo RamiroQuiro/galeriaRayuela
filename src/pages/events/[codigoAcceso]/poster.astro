@@ -7,18 +7,18 @@ import QRCode from "qrcode";
 import { Printer, Download, Share2, Eye } from "lucide-astro";
 import Button from "../../../components/ui/Button.astro";
 
-const { id } = Astro.params;
+const { codigoAcceso } = Astro.params;
 
-if (!id) return Astro.redirect("/dashboard");
+if (!codigoAcceso) return Astro.redirect("/dashboard");
 
 const event = await db.query.events.findFirst({
-  where: eq(events.id, id),
+  where: eq(events.codigoAcceso, codigoAcceso),
 });
 
 if (!event) return Astro.redirect("/dashboard");
 
 // 1. QR para la Galería Pública
-const publicUrl = `${Astro.url.origin}/events/${id}`;
+const publicUrl = `${Astro.url.origin}/events/${event.codigoAcceso}`;
 const galleryQrUri = await QRCode.toDataURL(publicUrl, {
   width: 600,
   margin: 2,

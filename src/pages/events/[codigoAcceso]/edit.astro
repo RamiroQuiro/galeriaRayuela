@@ -7,27 +7,33 @@ import { ArrowLeft, Save, Image as ImageIcon } from "lucide-astro";
 import Button from "../../../components/ui/Button.astro";
 import Input from "../../../components/ui/Input.astro";
 
-const { id } = Astro.params;
-const eventId = parseInt(id!);
+const { codigoAcceso } = Astro.params;
 const user = Astro.locals.user;
 
 if (!user) {
   return Astro.redirect("/login");
 }
 
-if (isNaN(eventId)) {
+if (!codigoAcceso) {
   return Astro.redirect("/404");
 }
 
 const event = await db
   .select()
   .from(events)
-  .where(and(eq(events.id, eventId), eq(events.tenantId, user.tenantId)))
+  .where(
+    and(
+      eq(events.codigoAcceso, codigoAcceso),
+      eq(events.tenantId, user.tenantId),
+    ),
+  )
   .get();
 
 if (!event) {
   return Astro.redirect("/404");
 }
+
+const eventId = event.id;
 ---
 
 <Layout title={`Editar Evento | ${event.name}`}>
@@ -165,7 +171,7 @@ if (!event) {
       } else {
         const errorData = await res.json();
         alert(
-          "Error al actualizar evento: " + (errorData.error || "Desconocido")
+          "Error al actualizar evento: " + (errorData.error || "Desconocido"),
         );
         if (submitBtn) {
           submitBtn.disabled = false;

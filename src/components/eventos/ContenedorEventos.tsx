@@ -78,7 +78,7 @@ export default function ContenedorEventos({
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 group-hover:from-gray-700 group-hover:to-gray-800 transition-colors">
+                <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-800 to-gray-900 group-hover:from-gray-700 group-hover:to-gray-800 transition-colors">
                   <Calendar className="h-12 w-12 text-gray-600" />
                 </div>
               )}
@@ -111,7 +111,7 @@ export default function ContenedorEventos({
                 {/* Primary Actions - The Flow */}
                 <div className="grid grid-cols-3 gap-2">
                   <a
-                    href={`/dashboard/eventos/${event.id}/poster`}
+                    href={`/dashboard/eventos/${event.codigoAcceso}/poster`}
                     className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all group/btn"
                     title="Paso 2: Imprimir QR"
                   >
@@ -134,7 +134,7 @@ export default function ContenedorEventos({
                   </a>
 
                   <a
-                    href={`/events/${event.id}`}
+                    href={`/events/${event.codigoAcceso}`}
                     className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all group/btn"
                     title="Paso 4: Ver Galería"
                   >

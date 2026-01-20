@@ -177,14 +177,14 @@ export function EventsSection({ initialEvents }: EventsSectionProps) {
                 <div className="mt-auto border-t border-white/5 pt-4 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
                   <div className="flex gap-2">
                     <a
-                      href={`/events/${event.id}/poster`}
+                      href={`/events/${event.codigoAcceso}/poster`}
                       className="p-2.5 hover:bg-white/5 rounded-xl text-gray-400 hover:text-white transition-all border border-transparent hover:border-white/10"
                       title="Imprimir Cartel QR"
                     >
                       <Printer className="h-4 w-4" />
                     </a>
                     <a
-                      href={`/events/${event.id}`}
+                      href={`/events/${event.codigoAcceso}`}
                       className="p-2.5 hover:bg-white/5 rounded-xl text-gray-400 hover:text-white transition-all border border-transparent hover:border-white/10"
                       title="Ver Galería"
                     >
@@ -199,7 +199,7 @@ export function EventsSection({ initialEvents }: EventsSectionProps) {
                       <Plus className="h-4 w-4" />
                     </a>
                     <a
-                      href={`/events/${event.id}/edit`}
+                      href={`/events/${event.codigoAcceso}/edit`}
                       className="p-2.5 hover:bg-white/5 rounded-xl text-gray-400 hover:text-neon-blue transition-all border border-transparent hover:border-white/10"
                       title="Editar Evento"
                     >

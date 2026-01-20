@@ -6,22 +6,19 @@ import { eq, desc } from "drizzle-orm";
 import { GaleriaEnVivo } from "../../components/GaleriaEnVivo";
 import BotonProyectar from "../../components/galeria/BotonProyectar";
 
-const { id } = Astro.params;
-const eventId = parseInt(id!);
-
-if (isNaN(eventId)) {
-  return Astro.redirect("/404");
-}
+const { codigoAcceso } = Astro.params;
 
 const event = await db
   .select()
   .from(events)
-  .where(eq(events.id, eventId))
+  .where(eq(events.codigoAcceso, codigoAcceso!))
   .get();
 
 if (!event) {
   return Astro.redirect("/404");
 }
+
+const eventId = event.id;
 
 const eventImages = await db
   .select()
@@ -84,7 +81,7 @@ const eventImages = await db
         class="text-sm font-bold text-green-400 uppercase tracking-widest text-glow"
         >En Vivo</span
       >
-      <BotonProyectar eventoId={eventId} client:load />
+      <BotonProyectar codigoAcceso={event.codigoAcceso} client:load />
     </div>
   </div>
 

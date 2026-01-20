@@ -2,10 +2,10 @@ import { Button } from "../ui/Button";
 import { MonitorPlay } from "lucide-react";
 
 type Props = {
-  eventoId: number;
+  codigoAcceso: string;
 };
 
-export default function BotonProyectar({ eventoId }: Props) {
+export default function BotonProyectar({ codigoAcceso }: Props) {
   const abrirProyeccion = () => {
     // Abrir en nueva ventana sin barras de navegación
     const width = window.screen.width;
@@ -25,7 +25,7 @@ export default function BotonProyectar({ eventoId }: Props) {
     `;
 
     // Usar la ruta de Astro que renderiza la proyección
-    window.open(`/events/${eventoId}/live`, `proyeccion_${eventoId}`, features);
+    window.open(`/events/${codigoAcceso}/live`, `proyeccion_${codigoAcceso}`, features);
   };
 
   return (
