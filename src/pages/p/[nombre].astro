@@ -1,0 +1,68 @@
+---
+import { db } from "../../db";
+import { users, events } from "../../db/schemas";
+import { eq, and } from "drizzle-orm";
+
+const { nombre } = Astro.params;
+
+if (!nombre) {
+  return Astro.redirect("/login");
+}
+
+// 1. Buscar el usuario por su nombre de fantasía
+const user = await db
+  .select()
+  .from(users)
+  .where(eq(users.nombreFantasia, nombre))
+  .get();
+
+if (!user) {
+  // Podríamos redirigir a una página de error 404 personalizada o al home
+  return Astro.redirect("/?error=p_not_found");
+}
+
+// 2. Buscar el evento activo (esPrincipal = 1) para este usuario (tenantId)
+const activeEvent = await db
+  .select()
+  .from(events)
+  .where(and(eq(events.tenantId, user.tenantId), eq(events.esPrincipal, 1)))
+  .get();
+
+if (!activeEvent) {
+  // Si el usuario existe pero no tiene evento con whatsapp activo
+  // Redirigimos a una página de espera o aviso
+  return Astro.redirect(`/?msg=no_active_event&user=${nombre}`);
+}
+
+// 3. Redirigir al evento activo
+return Astro.redirect(`/eventos/${activeEvent.codigoAcceso}`);
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirigiendo...</title>
+  </head>
+  <body
+    style="background: #000; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;"
+  >
+    <div style="text-align: center;">
+      <h1 style="font-size: 1.5rem; margin-bottom: 1rem;">
+        Conectando con el evento...
+      </h1>
+      <div
+        style="width: 40px; height: 40px; border: 4px solid #3b82f6; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"
+      >
+      </div>
+    </div>
+    <style>
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </body>
+</html>

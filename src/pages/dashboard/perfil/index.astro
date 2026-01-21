@@ -51,6 +51,33 @@ if (!user) {
             <div>
               <label
                 class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2"
+                >Nombre de Fantasía (Link Estático)</label
+              >
+              <div class="space-y-2">
+                <input
+                  type="text"
+                  name="nombreFantasia"
+                  id="nombreFantasiaInput"
+                  class="glass-input w-full text-sm outline-hidden font-mono"
+                  placeholder="ej. la-banda-a-jujuy"
+                  value={user.nombreFantasia || ""}
+                />
+                <p
+                  id="linkPreview"
+                  class="text-[10px] text-neon-blue font-mono px-2"
+                >
+                  Link Permanente: galeriarayuela.com/p/{
+                    user.nombreFantasia || "tu-nombre"
+                  }
+                </p>
+              </div>
+              <p class="text-[9px] text-gray-500 mt-2 italic">
+                Este nombre identifica tu link permanente y tu QR físico.
+              </p>
+            </div>
+            <div>
+              <label
+                class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2"
                 >Ubicación</label
               >
               <input
@@ -113,13 +140,23 @@ if (!user) {
 
         if (res.ok) {
           alert("Perfil actualizado correctamente");
+          window.location.reload(); // Recargar para actualizar los datos en locals y la UI
         } else {
-          alert("Error al actualizar el perfil");
+          const errorData = await res.json();
+          alert(errorData.error || "Error al actualizar el perfil");
         }
       } catch (err) {
         console.error(err);
         alert("Ocurrió un error inesperado");
       }
+    });
+
+    // Link Preview Logic
+    const input = document.getElementById("nombreFantasiaInput");
+    const preview = document.getElementById("linkPreview");
+    input?.addEventListener("input", (e) => {
+      const val = e.target.value.toLowerCase().trim().replace(/\s+/g, "-");
+      preview.textContent = `Link Permanente: galeriarayuela.com/p/${val || "tu-nombre"}`;
     });
   </script>
 </DashboarLayout>

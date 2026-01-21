@@ -17,6 +17,10 @@ import {
   Edit,
   Trash,
   Smartphone,
+  Monitor,
+  Trophy,
+  MessageSquare,
+  Star,
 } from "lucide-react";
 import Button from "../ui/Button";
 // Button.astro import removed as it cannot be used in React
@@ -61,6 +65,23 @@ export default function ContenedorEventos({
         traerEventos();
       } else {
         alert(data.message || "Error al activar WhatsApp");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error de conexión");
+    }
+  };
+
+  const handleTogglePrincipal = async (id: number) => {
+    try {
+      const res = await fetch(`/api/eventos/${id}/toggle-principal`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        traerEventos();
+      } else {
+        alert(data.message || "Error al establecer evento principal");
       }
     } catch (e) {
       console.error(e);
@@ -150,7 +171,28 @@ export default function ContenedorEventos({
                     className={`h-4 w-4 ${event.whatsappActivo ? "animate-pulse" : ""}`}
                   />
                   <span className="text-[10px] font-black uppercase tracking-tighter">
-                    WhatsApp {event.whatsappActivo ? "activado" : "desactivado"}
+                    WA {event.whatsappActivo ? "ON" : "OFF"}
+                  </span>
+                </Button>
+
+                <Button
+                  onClick={() => handleTogglePrincipal(event.id)}
+                  title={
+                    event.esPrincipal
+                      ? "Evento Principal (QR Permanente)"
+                      : "Marcar como Principal para QR Permanente"
+                  }
+                  className={`p-2 rounded-xl transition-all border flex items-center gap-1.5 ${
+                    event.esPrincipal
+                      ? "bg-yellow-500/20 text-yellow-500 border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.2)]"
+                      : "bg-white/5 text-gray-500 border-white/5 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Star
+                    className={`h-4 w-4 ${event.esPrincipal ? "fill-current" : ""}`}
+                  />
+                  <span className="text-[10px] font-black uppercase tracking-tighter text-center">
+                    QR FIJO <br /> {event.esPrincipal ? "ACTIVO" : "VINCULAR"}
                   </span>
                 </Button>
               </div>
@@ -191,6 +233,30 @@ export default function ContenedorEventos({
                       Ver
                     </span>
                   </a>
+
+                  <a
+                    href={`/proyector/${event.codigoAcceso}`}
+                    target="_blank"
+                    className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/40 text-blue-100 hover:text-white transition-all group/btn border border-blue-500/30 text-center"
+                    title="Proyección Combinada (Fotos + Mensajes)"
+                  >
+                    <Monitor className="h-5 w-5 text-blue-400 group-hover/btn:scale-110 transition-transform" />
+                    <span className="text-[9px] font-bold uppercase tracking-tight">
+                      Proyectar
+                    </span>
+                  </a>
+
+                  <a
+                    href={`/proyector/${event.codigoAcceso}?display=messages`}
+                    target="_blank"
+                    className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-zinc-800/40 hover:bg-zinc-800/60 text-zinc-400 hover:text-white transition-all group/btn border border-white/5 text-center"
+                    title="Solo Muro de Mensajes"
+                  >
+                    <MessageSquare className="h-5 w-5 text-zinc-500 group-hover/btn:scale-110 transition-transform" />
+                    <span className="text-[9px] font-bold uppercase tracking-tight">
+                      Solo Mensajes
+                    </span>
+                  </a>
                 </div>
 
                 {/* Secondary Actions - Admin */}
@@ -206,6 +272,29 @@ export default function ContenedorEventos({
                     >
                       <Edit className="h-3 w-3" />
                       <span className="text-[10px]">Editar</span>
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (
+                          confirm("¿Lanzar sorteo ahora? Se verá en pantalla.")
+                        ) {
+                          const res = await fetch(
+                            `/api/eventos/live/${event.id}/draw`,
+                            { method: "POST" },
+                          );
+                          const data = await res.json();
+                          if (res.ok)
+                            alert(
+                              `¡Sorteo realizado! Ganador: ${data.data.winnerNumber}`,
+                            );
+                          else alert(data.message);
+                        }
+                      }}
+                      className="p-2 hover:bg-yellow-500/10 rounded-lg text-gray-500 hover:text-yellow-400 transition-all flex items-center gap-1"
+                      title="Lanzar Sorteo"
+                    >
+                      <Trophy className="h-3 w-3" />
+                      <span className="text-[10px]">Sorteo</span>
                     </button>
                     <button
                       onClick={() => handleEliminar(event.id, event.name)}

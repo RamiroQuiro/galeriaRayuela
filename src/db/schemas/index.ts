@@ -7,3 +7,5 @@ export * from "./suscripciones.schema";
 export * from "./services.schema";
 export * from "./whatsapp_sesiones.schema";
 export * from "./whatsapp_subidas.schema";
+export * from "./messages.schema";
+export * from "./winners.schema";

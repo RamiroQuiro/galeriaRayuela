@@ -1,0 +1,40 @@
+---
+import { db } from "../../db";
+import { events } from "../../db/schemas";
+import { eq } from "drizzle-orm";
+import Layout from "../../layouts/Layout.astro";
+import { LiveProjection } from "../../components/live/LiveProjection";
+
+const { codigoAcceso } = Astro.params;
+
+if (!codigoAcceso) return Astro.redirect("/404");
+
+const event = await db
+  .select()
+  .from(events)
+  .where(eq(events.codigoAcceso, codigoAcceso))
+  .get();
+
+if (!event) return Astro.redirect("/404");
+---
+
+<Layout title={`En Vivo - ${event.name}`}>
+  <main class="fixed inset-0 bg-black overflow-hidden select-none cursor-none">
+    <LiveProjection client:only="react" event={event} />
+  </main>
+</Layout>
+
+<style is:global>
+  /* Reset para proyección */
+  body {
+    background: black;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  header,
+  footer {
+    display: none !important;
+  }
+</style>

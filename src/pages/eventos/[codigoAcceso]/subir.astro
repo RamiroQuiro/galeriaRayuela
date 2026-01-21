@@ -3,7 +3,7 @@ import Layout from "../../../layouts/Layout.astro";
 import { db } from "../../../db";
 import { events } from "../../../db/schemas";
 import { eq } from "drizzle-orm";
-import { FormularioSubidaPublica } from "../../../components/FormularioSubidaPublica";
+import { GuestInteractionFlow } from "../../../components/eventos/GuestInteractionFlow";
 
 const { codigoAcceso } = Astro.params;
 
@@ -60,10 +60,10 @@ if (evento.estado !== "activo") {
         </p>
       </div>
 
-      <!-- Formulario de subida -->
-      <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-        <FormularioSubidaPublica
-          codigoEvento={codigoAcceso}
+      <!-- Flujo de interacción del invitado -->
+      <div class="mt-4">
+        <GuestInteractionFlow
+          codigoEvento={codigoAcceso!}
           nombreEvento={evento.name}
           client:load
         />

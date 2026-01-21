@@ -27,6 +27,9 @@ export const events = sqliteTable("events", {
   // Activación de WhatsApp específica para este evento
   whatsappActivo: integer("whatsapp_activo").default(0), // 0: inactivo, 1: activo
 
+  // Evento principal para la redirección estática (/p/nombre)
+  esPrincipal: integer("es_principal").default(0), // 0: no, 1: sí
+
   // Fecha del evento (opcional)
   fechaEvento: text("fecha_evento"),
 

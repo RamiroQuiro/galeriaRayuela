@@ -11,6 +11,7 @@ export interface Event {
   createdAt: Date | null;
   tenantId: string | null;
   whatsappActivo: number | null;
+  esPrincipal: number | null;
 }
 
 export const eventsStore = atom<Event[]>([]);

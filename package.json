@@ -28,6 +28,7 @@
     "cropperjs": "^1.6.2",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
+    "framer-motion": "^12.27.5",
     "i": "^0.3.7",
     "lucia": "^3.2.2",
     "lucide-astro": "^0.556.0",

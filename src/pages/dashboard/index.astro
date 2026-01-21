@@ -22,7 +22,7 @@ const myEvents = await db
   .select()
   .from(events)
   .where(
-    and(eq(events.tenantId, user.tenantId), ne(events.estado, "eliminado"))
+    and(eq(events.tenantId, user.tenantId), ne(events.estado, "eliminado")),
   )
   .orderBy(desc(events.created_at))
   .all();
@@ -32,7 +32,7 @@ const deletedEvents = await db
   .select()
   .from(events)
   .where(
-    and(eq(events.tenantId, user.tenantId), eq(events.estado, "eliminado"))
+    and(eq(events.tenantId, user.tenantId), eq(events.estado, "eliminado")),
   )
   .orderBy(desc(events.deleted_at))
   .all();
@@ -52,13 +52,24 @@ const deletedEvents = await db
             Gestiona tus galerías y códigos QR.
           </p>
         </div>
-        <Modal
-          label="Nuevo Evento"
-          title="Nuevo Evento"
-          id="modal-nuevo-evento"
-        >
-          <CreateEventForm client:load />
-        </Modal>
+        <div class="flex items-center gap-3">
+          <a
+            href="/dashboard/poster-permanente"
+            class="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white px-4 py-2.5 rounded-xl border border-white/10 transition-all group"
+          >
+            <Printer
+              class="h-4 w-4 text-neon-blue group-hover:scale-110 transition-transform"
+            />
+            <span class="text-sm font-medium">QR Permanente</span>
+          </a>
+          <Modal
+            label="Nuevo Evento"
+            title="Nuevo Evento"
+            id="modal-nuevo-evento"
+          >
+            <CreateEventForm client:load />
+          </Modal>
+        </div>
       </div>
 
       <ContenedorEventos client:load initialEvents={myEvents as any} />
@@ -71,7 +82,7 @@ const deletedEvents = await db
       function eliminarEvento(eventId, eventName) {
         if (
           confirm(
-            `¿Estás seguro de que quieres eliminar el evento "${eventName}" y todas sus fotos? Esta acción no se puede deshacer.`
+            `¿Estás seguro de que quieres eliminar el evento "${eventName}" y todas sus fotos? Esta acción no se puede deshacer.`,
           )
         ) {
           fetch(`/api/eventos/${eventId}`, {
@@ -85,7 +96,7 @@ const deletedEvents = await db
               } else {
                 alert(
                   "Error al eliminar el evento: " +
-                    (data.error || "Error desconocido")
+                    (data.error || "Error desconocido"),
                 );
               }
             })

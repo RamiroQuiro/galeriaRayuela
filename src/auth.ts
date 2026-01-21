@@ -21,7 +21,8 @@ export const lucia = new Lucia(adapter, {
             isVendor: attributes.isVendor,
             bio: attributes.bio,
             location: attributes.location,
-            whatsapp: attributes.whatsapp
+            whatsapp: attributes.whatsapp,
+            nombreFantasia: attributes.nombreFantasia
 		};
 	}
 });
@@ -41,4 +42,5 @@ interface DatabaseUserAttributes {
     bio: string | null;
     location: string | null;
     whatsapp: string | null;
+    nombreFantasia: string | null;
 }

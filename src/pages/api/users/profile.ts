@@ -12,7 +12,20 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   try {
     const data = await request.json();
-    const { bio, location, whatsapp, isVendor } = data;
+    const { bio, location, whatsapp, isVendor, nombreFantasia } = data;
+
+    // Validación de unicidad para nombreFantasia si se proporciona
+    if (nombreFantasia) {
+      const existing = await db
+        .select()
+        .from(users)
+        .where(eq(users.nombreFantasia, nombreFantasia))
+        .get();
+      
+      if (existing && existing.id !== user.id) {
+        return new Response(JSON.stringify({ error: "El nombre de fantasía ya está en uso" }), { status: 400 });
+      }
+    }
 
     await db
       .update(users)
@@ -20,8 +33,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
         bio,
         location,
         whatsapp,
-        isVendor: isVendor !== undefined ? isVendor : true, // Por defecto marcamos como vendedor si está editando su perfil de vendedor
-        // Podríamos añadir más campos aquí
+        nombreFantasia: nombreFantasia?.toLowerCase()?.trim()?.replace(/\s+/g, "-"), // Normalizamos para la URL
+        isVendor: isVendor !== undefined ? isVendor : true,
       })
       .where(eq(users.id, user.id));
 

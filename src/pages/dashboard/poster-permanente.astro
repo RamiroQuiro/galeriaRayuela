@@ -1,0 +1,300 @@
+---
+import { eq, and } from "drizzle-orm";
+import QRCode from "qrcode";
+import { db } from "../../db";
+import { whatsappSesiones } from "../../db/schemas";
+import DashboarLayout from "../../layouts/DashboarLayout.astro";
+import { PosterGenerator } from "../../components/poster/PosterGenerator";
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect("/login");
+
+// Validar si tiene nombre de fantasía
+if (!user.nombreFantasia) {
+  return Astro.redirect("/dashboard/perfil?error=setup_fantasy_name");
+}
+
+// 1. QR Permanente (Redirección inteligente)
+const staticUrl = `${Astro.url.origin}/p/${user.nombreFantasia}`;
+const staticQrUri = await QRCode.toDataURL(staticUrl, {
+  width: 600,
+  margin: 2,
+  color: { dark: "#0f172a", light: "#ffffff" },
+});
+
+// 2. QR para WhatsApp (Opcional - Misma lógica que el poster dinámico)
+let whatsappQrUri = "";
+const session = await db
+  .select()
+  .from(whatsappSesiones)
+  .where(
+    and(
+      eq(whatsappSesiones.usuarioId, user.id),
+      eq(whatsappSesiones.estado, "activo"),
+    ),
+  )
+  .get();
+
+if (session && session.numeroWhatsapp) {
+  const waUrl = `https://wa.me/${session.numeroWhatsapp.replace(/\D/g, "")}`;
+  whatsappQrUri = await QRCode.toDataURL(waUrl, {
+    width: 600,
+    margin: 2,
+    color: { dark: "#0f172a", light: "#ffffff" },
+  });
+}
+
+// Creamos un objeto "evento placeholder" para el PosterGenerator
+const placeholderEvent = {
+  name: user.nombreFantasia || user.nombreCompleto || "Tu Galería",
+  codigoAcceso: "Estatico",
+  location: user.location || "Evento Activo",
+  date: new Date().toLocaleDateString(),
+};
+---
+
+<DashboarLayout title="Poster Permanente">
+  <div class="h-full flex flex-col p-6 items-center">
+    <!-- Controles no imprimibles -->
+    <div class="w-full max-w-4xl mb-8 no-print space-y-4">
+      <div
+        class="bg-blue-500/10 border border-blue-500/20 p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6"
+      >
+        <div>
+          <h3 class="text-blue-400 font-bold text-lg">
+            Configuración de QRs Permanentes
+          </h3>
+          <p class="text-blue-300/70 text-sm">
+            Elige cómo quieres imprimir tus códigos fijos.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div class="flex bg-black/40 p-1 rounded-xl border border-white/10">
+            <button
+              id="btn-dual"
+              class="layout-btn px-4 py-2 rounded-lg text-xs font-bold transition-all bg-blue-500 text-white shadow-lg"
+              >DOBLE</button
+            >
+            <button
+              id="btn-web"
+              class="layout-btn px-4 py-2 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white"
+              >SOLO WEB</button
+            >
+            <button
+              id="btn-wa"
+              class="layout-btn px-4 py-2 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white"
+              >SOLO WA</button
+            >
+          </div>
+          <button
+            onclick="window.print()"
+            class="bg-white text-slate-900 px-6 py-2.5 rounded-xl transition-all font-bold hover:bg-gray-200"
+            >Imprimir</button
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Área de Impresión (A4) -->
+    <div
+      id="poster-area"
+      class="print-container bg-white text-slate-900 w-[210mm] min-h-[297mm] shadow-2xl p-[15mm] flex flex-col items-center transition-all duration-300"
+    >
+      <div
+        class="w-full h-1 bg-linear-to-r from-neon-blue via-neon-purple to-neon-pink mb-12"
+      >
+      </div>
+
+      <div class="text-center mb-16">
+        <h1
+          class="text-5xl font-black uppercase tracking-tighter mb-4 text-slate-900"
+        >
+          ¡Escanea y <span
+            class="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-purple-600"
+            >Participa</span
+          >!
+        </h1>
+        <p
+          id="poster-subtitle"
+          class="text-gray-500 text-xl font-medium tracking-wide"
+        >
+          Galería en vivo • Dedicatorias • Sorteos
+        </p>
+      </div>
+
+      <!-- Contenedor de QRs con estados -->
+      <div
+        id="qr-grid"
+        class="grid grid-cols-2 gap-12 w-full max-w-5xl transition-all duration-300"
+      >
+        <!-- QR 1: Formulario / Galería -->
+        <div
+          id="qr-web-card"
+          class="flex flex-col items-center p-8 border-2 border-gray-100 rounded-[3.5rem] bg-gray-50/50 transition-all"
+        >
+          <div
+            class="bg-white p-6 rounded-[2.5rem] shadow-xl mb-6 border border-gray-100"
+          >
+            <img
+              src={staticQrUri}
+              alt="QR Formulario"
+              class="qr-img w-64 h-64"
+            />
+          </div>
+          <div class="text-center">
+            <h2 class="text-2xl font-black text-blue-600 uppercase mb-2">
+              Opción Web
+            </h2>
+            <p class="text-gray-600 text-sm leading-tight">
+              Sube fotos y mensajes<br />desde tu navegador
+            </p>
+          </div>
+        </div>
+
+        <!-- QR 2: WhatsApp -->
+        <div
+          id="qr-wa-card"
+          class={`flex flex-col items-center p-8 border-2 border-gray-100 rounded-[3.5rem] bg-gray-50/50 transition-all ${!whatsappQrUri ? "opacity-30 grayscale" : ""}`}
+        >
+          <div
+            class="bg-white p-6 rounded-[2.5rem] shadow-xl mb-6 border border-gray-100"
+          >
+            {
+              whatsappQrUri ? (
+                <img
+                  src={whatsappQrUri}
+                  alt="QR WhatsApp"
+                  class="qr-img w-64 h-64"
+                />
+              ) : (
+                <div class="w-64 h-64 flex items-center justify-center border-4 border-dashed border-gray-200 rounded-3xl">
+                  <p class="text-gray-300 font-bold p-8 text-center italic">
+                    No vinculado
+                  </p>
+                </div>
+              )
+            }
+          </div>
+          <div class="text-center">
+            <h2 class="text-2xl font-black text-green-600 uppercase mb-2">
+              Opción WhatsApp
+            </h2>
+            <p class="text-gray-600 text-sm leading-tight">
+              Envía tus fotos y deseos<br />por chat
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="mt-auto w-full pt-16 border-t border-gray-100 flex justify-between items-end"
+      >
+        <div class="flex gap-4">
+          <div
+            class="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-lg italic"
+          >
+            R
+          </div>
+          <div>
+            <p
+              class="font-black italic uppercase text-slate-900 tracking-tighter leading-none"
+            >
+              Rayuela
+            </p>
+            <p
+              class="text-[10px] text-gray-400 font-bold uppercase tracking-widest"
+            >
+              Live Experience
+            </p>
+          </div>
+        </div>
+        <p class="text-[9px] text-gray-300 font-mono italic">
+          ID: {user.username} • {user.nombreFantasia}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    const grid = document.getElementById("qr-grid");
+    const webCard = document.getElementById("qr-web-card");
+    const waCard = document.getElementById("qr-wa-card");
+    const subtitle = document.getElementById("poster-subtitle");
+    const btns = document.querySelectorAll(".layout-btn");
+
+    function setLayout(mode) {
+      // Reset classes
+      grid.className = "grid w-full max-w-5xl transition-all duration-300";
+      webCard.className =
+        "flex flex-col items-center p-8 border-2 border-gray-100 rounded-[3.5rem] bg-gray-50/50 transition-all";
+      waCard.className =
+        "flex flex-col items-center p-8 border-2 border-gray-100 rounded-[3.5rem] bg-gray-50/50 transition-all";
+
+      // QR images handle
+      const imgs = document.querySelectorAll(".qr-img");
+      imgs.forEach((img) => (img.className = "qr-img w-64 h-64"));
+
+      if (mode === "dual") {
+        grid.classList.add("grid-cols-2", "gap-12");
+        subtitle.textContent = "Galería en vivo • Dedicatorias • Sorteos";
+      } else if (mode === "web") {
+        grid.classList.add("grid-cols-1", "justify-items-center");
+        waCard.classList.add("hidden");
+        imgs.forEach((img) => (img.className = "qr-img w-96 h-96"));
+        subtitle.textContent = "Sube tus fotos directamente desde la Web";
+      } else if (mode === "whatsapp") {
+        grid.classList.add("grid-cols-1", "justify-items-center");
+        webCard.classList.add("hidden");
+        imgs.forEach((img) => (img.className = "qr-img w-96 h-96"));
+        subtitle.textContent = "Envía tus mejores momentos por WhatsApp";
+      }
+
+      // BTN Styles
+      btns.forEach((btn) => {
+        btn.classList.remove("bg-blue-500", "text-white", "shadow-lg");
+        btn.classList.add("text-gray-400");
+      });
+      document
+        .getElementById(`btn-${mode === "wa" ? "wa" : mode}`)
+        .classList.add("bg-blue-500", "text-white", "shadow-lg");
+    }
+
+    document.getElementById("btn-dual").onclick = () => setLayout("dual");
+    document.getElementById("btn-web").onclick = () => setLayout("web");
+    document.getElementById("btn-wa").onclick = () => setLayout("whatsapp");
+  </script>
+</DashboarLayout>
+
+<style is:global>
+  @media print {
+    nav,
+    aside,
+    header,
+    .no-print {
+      display: none !important;
+    }
+    body {
+      background: white !important;
+      color: black !important;
+      overflow: visible !important;
+    }
+    #app-main {
+      padding: 0 !important;
+      margin: 0 !important;
+      width: 100% !important;
+      display: block !important;
+    }
+    .print-container {
+      box-shadow: none !important;
+      border: none !important;
+      margin: 0 auto !important;
+      width: 210mm !important;
+      min-height: 297mm !important;
+    }
+    @page {
+      size: A4;
+      margin: 0;
+    }
+  }
+</style>

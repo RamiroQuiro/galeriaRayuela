@@ -5,6 +5,7 @@ import {
   fetchLatestBaileysVersion,
   makeWASocket,
   useMultiFileAuthState,
+  downloadContentFromMessage,
   delay
 } from '@whiskeysockets/baileys';
 import 'dotenv/config';
@@ -89,6 +90,49 @@ async function procesarImagen(buffer, usuarioId, numeroTelefono, mimetype) {
     return { success: true };
   } catch (error) {
     console.error('[ImageProcessor] Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+import { esContenidoSeguro } from './src/utils/moderation';
+
+async function procesarMensaje(texto, usuarioId, numeroTelefono) {
+  try {
+    const isSafe = esContenidoSeguro(texto);
+    const status = isSafe ? 'aprobado' : 'pendiente';
+    const userRecord = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.id, usuarioId))
+        .get();
+        
+    const effectiveTenantId = userRecord?.tenantId || usuarioId;
+
+    const evento = await db
+        .select()
+        .from(schema.events)
+        .where(
+            and(
+                eq(schema.events.whatsappActivo, 1), 
+                eq(schema.events.tenantId, effectiveTenantId)
+            )
+        )
+        .get();
+
+    if (!evento) return { success: false, error: 'No hay evento activo con WhatsApp.' };
+
+    await db.insert(schema.messages).values({
+      eventId: evento.id,
+      tenantId: effectiveTenantId,
+      senderNumber: numeroTelefono,
+      text: texto,
+      status: status,
+      createdAt: Math.floor(Date.now() / 1000)
+    });
+
+    return { success: true, status };
+  } catch (error) {
+    console.error('[MessageProcessor] Error:', error);
     return { success: false, error: error.message };
   }
 }
@@ -188,59 +232,81 @@ async function getOrCreateBaileysClient(userId) {
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
     if (type !== 'notify') return;
     for (const msg of messages) {
-       if (!msg.message || msg.key.fromMe) continue;
-       
-       // Procesar Imagen
-       const imageMsg = msg.message.imageMessage;
-       if (imageMsg) {
-          const remoteJid = msg.key.remoteJid;
-          
-          // 1. Ignorar grupos (si termina en @g.us o similar)
-          if (remoteJid.includes('@g.us')) {
-             console.log(`[WhatsApp] 👥 Ignorando imagen de grupo: ${remoteJid}`);
-             continue;
-          }
+       try {
+        if (!msg.message || msg.key.fromMe) continue;
+        
+        // Procesar Imagen (Soportamos Normal, ViewOnce y Ephemeral)
+        const imageMsg = msg.message.imageMessage || 
+                         msg.message.viewOnceMessage?.message?.imageMessage || 
+                         msg.message.viewOnceMessageV2?.message?.imageMessage ||
+                         msg.message.ephemeralMessage?.message?.imageMessage;
 
-          // Ignorar estados de WhatsApp
-          if (remoteJid === 'status@broadcast') continue;
+        if (imageMsg && (imageMsg.url || imageMsg.directPath)) {
+           const remoteJid = msg.key.remoteJid;
+           
+           // 1. SOLO permitir chats privados (ignorar grupos, canales, difusiones)
+           if (!remoteJid.endsWith('@s.whatsapp.net')) {
+              console.log(`[WhatsApp] 👥 Ignorando origen no soportado (grupo/canal/otro): ${remoteJid}`);
+              continue;
+           }
 
-          const numeroTelefono = remoteJid.split("@")[0];
-          
-          // 2. Control de Rate Limit (2 fotos cada 8 min)
-          const now = Date.now();
-          const limitMs = LIMIT_CONFIG.minutes * 60 * 1000;
-          let userHistory = userLimits.get(numeroTelefono) || [];
-          
-          // Limpiar timestamps viejos
-          userHistory = userHistory.filter(ts => now - ts < limitMs);
-          
-          if (userHistory.length >= LIMIT_CONFIG.count) {
-             const minRestantes = Math.ceil((limitMs - (now - userHistory[0])) / 60000);
-             console.log(`[WhatsApp] ⏳ Límite alcanzado para ${numeroTelefono}. Reintento en ${minRestantes} min.`);
-             await sock.sendMessage(remoteJid, { 
-                text: `⏳ *Límite alcanzado:* Podés mandar hasta ${LIMIT_CONFIG.count} fotos cada ${LIMIT_CONFIG.minutes} minutos.\n\nIntentá de nuevo en unos minutos.` 
-             });
-             continue;
-          }
+           const numeroTelefono = remoteJid.split("@")[0];
+           
+           // 2. Control de Rate Limit (2 fotos cada 8 min)
+           const now = Date.now();
+           const limitMs = LIMIT_CONFIG.minutes * 60 * 1000;
+           let userHistory = userLimits.get(numeroTelefono) || [];
+           
+           // Limpiar timestamps viejos
+           userHistory = userHistory.filter(ts => now - ts < limitMs);
+           
+           if (userHistory.length >= LIMIT_CONFIG.count) {
+              const minRestantes = Math.ceil((limitMs - (now - userHistory[0])) / 60000);
+              console.log(`[WhatsApp] ⏳ Límite alcanzado para ${numeroTelefono}. Reintento en ${minRestantes} min.`);
+              await sock.sendMessage(remoteJid, { 
+                 text: `⏳ *Límite alcanzado:* Podés mandar hasta ${LIMIT_CONFIG.count} fotos cada ${LIMIT_CONFIG.minutes} minutos.\n\nIntentá de nuevo en unos minutos.` 
+              });
+              continue;
+           }
 
-          console.log(`[WhatsApp] 📥 Imagen recibida de ${numeroTelefono}`);
-          
-          const { downloadContentFromMessage } = await import('@whiskeysockets/baileys');
-          const stream = await downloadContentFromMessage(imageMsg, 'image');
-          let buffer = Buffer.from([]);
-          for await (const chunk of stream) {
-            buffer = Buffer.concat([buffer, chunk]);
-          }
+           console.log(`[WhatsApp] 📥 Imagen recibida de ${numeroTelefono}`);
+           
+           const stream = await downloadContentFromMessage(imageMsg, 'image');
+           let buffer = Buffer.from([]);
+           for await (const chunk of stream) {
+             buffer = Buffer.concat([buffer, chunk]);
+           }
 
-          const res = await procesarImagen(buffer, id, numeroTelefono, imageMsg.mimetype);
-          if (res.success) {
-             userHistory.push(now);
-             userLimits.set(numeroTelefono, userHistory);
-             await sock.sendMessage(remoteJid, { text: "✅ ¡Foto recibida y publicada! Gracias." });
-          } else {
-             console.error(`[ImageProcessor] ❌ Falla para ${numeroTelefono}: ${res.error}`);
-             await sock.sendMessage(remoteJid, { text: `❌ Error guardando foto: ${res.error}` });
-          }
+            const res = await procesarImagen(buffer, id, numeroTelefono, imageMsg.mimetype);
+            if (res.success) {
+               userHistory.push(now);
+               userLimits.set(numeroTelefono, userHistory);
+               await sock.sendMessage(remoteJid, { text: "✅ ¡Foto recibida y publicada! Gracias." });
+            } else {
+               console.error(`[ImageProcessor] ❌ Falla para ${numeroTelefono}: ${res.error}`);
+               await sock.sendMessage(remoteJid, { text: `❌ Error guardando foto: ${res.error}` });
+            }
+        } else {
+            // Procesar Texto (Dedicatorias)
+            const textContent = msg.message.conversation || msg.message.extendedTextMessage?.text;
+            if (textContent && !msg.key.fromMe) {
+               const remoteJid = msg.key.remoteJid;
+               if (!remoteJid.endsWith('@s.whatsapp.net')) continue;
+
+               const numeroTelefono = remoteJid.split("@")[0];
+               console.log(`[WhatsApp] 📝 Mensaje recibido de ${numeroTelefono}: ${textContent}`);
+
+               const res = await procesarMensaje(textContent, id, numeroTelefono);
+               if (res.success) {
+                  const replyText = res.status === 'pendiente' 
+                     ? "📝 Tu mensaje ha sido recibido y está pendiente de moderación por seguridad. ¡Gracias!"
+                     : "📝 ¡Tu mensaje ha sido enviado a la pantalla! Gracias.";
+                  await sock.sendMessage(remoteJid, { text: replyText });
+               }
+            }
+        }
+       } catch (err) {
+         console.error(`[WhatsApp] ❌ Error crítico procesando mensaje de ${msg.key.remoteJid}:`, err);
        }
     }
   });
