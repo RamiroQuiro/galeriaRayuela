@@ -28,10 +28,15 @@ const activeEvent = await db
   .where(and(eq(events.tenantId, user.tenantId), eq(events.esPrincipal, 1)))
   .get();
 
+// 31. if (!activeEvent) {
 if (!activeEvent) {
-  // Si el usuario existe pero no tiene evento con whatsapp activo
-  // Redirigimos a una página de espera o aviso
-  return Astro.redirect(`/?msg=no_active_event&user=${nombre}`);
+  // En lugar de redirigir a una página que requiere login, mostramos un error amigable aquí mismo
+  return new Response(null, {
+    status: 404,
+    statusText: "No Active Event Found for this User",
+  });
+  // O renderizamos un HTML simple de error:
+  // return Astro.redirect(`/?msg=no_active_event&user=${nombre}`); // ESTO ERA EL PROBLEMA
 }
 
 // 3. Redirigir al evento activo
