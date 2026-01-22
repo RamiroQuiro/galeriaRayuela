@@ -304,6 +304,38 @@ export default function ContenedorEventos({
                       <Trash className="h-3 w-3" />
                       <span className="text-[10px]">Borrar</span>
                     </button>
+                    <button
+                      onClick={async () => {
+                        if (
+                          confirm(
+                            `¿Estás SEGURO de querer borrar TODOS los mensajes de "${event.name}"? Esta acción no se puede deshacer.`,
+                          )
+                        ) {
+                          try {
+                            const res = await fetch(
+                              `/api/eventos/${event.id}/mensajes/reset`,
+                              { method: "DELETE" },
+                            );
+                            if (res.ok) {
+                              alert("Mensajes eliminados correctamente");
+                            } else {
+                              const data = await res.json();
+                              alert(
+                                data.message || "Error al eliminar mensajes",
+                              );
+                            }
+                          } catch (e) {
+                            console.error(e);
+                            alert("Error de conexión");
+                          }
+                        }
+                      }}
+                      className="p-2 hover:bg-orange-500/10 rounded-lg text-gray-600 hover:text-orange-500 transition-all flex items-center gap-1"
+                      title="Resetear Mensajes (Limpiar Muro)"
+                    >
+                      <Trash className="h-3 w-3" />
+                      <span className="text-[10px]">Reset Msj</span>
+                    </button>
                   </div>
                 </div>
               </div>
