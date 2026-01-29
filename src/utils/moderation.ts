@@ -1,7 +1,6 @@
-// Lista básica de palabras prohibidas (puedes expandirla)
+// Lista reducida de palabras prohibidas (solo contenido explícito)
 const BLACKLIST = [
-    "mierda", "puto", "puta", "hdp", "concha", "culiado", "csm",
-    "verga", "pene", "vagina", "sexo", "porno"
+    "porno", "sexo explícito"
 ];
 
 /**

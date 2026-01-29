@@ -141,7 +141,7 @@ async function procesarMensaje(texto, usuarioId, numeroTelefono) {
 // --- GESTIÓN DE LÍMITES Y CLIENTES ---
 const clients = new Map();
 const userLimits = new Map(); // numeroTelefono -> [timestamps]
-const LIMIT_CONFIG = { count: 2, minutes: 8 };
+const LIMIT_CONFIG = { count: 5, minutes: process.env.WHATSAPP_RATE_MINUTES ? parseInt(process.env.WHATSAPP_RATE_MINUTES) : 15 };
 
 async function getOrCreateBaileysClient(userId) {
   const id = String(userId);
