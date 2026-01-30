@@ -1,0 +1,681 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Rayuela - Fabrica de Recuerdos</title>
+    <!-- Estilos CSS Consolidados -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #000000; /* FONDO NEGRO PURO */
+            color: #E0E0E0; /* Texto claro para contraste */
+        }
+        h1 { 
+            color: #4A90E2; /* Azul claro para el título */
+            text-align: center;
+            font-weight: 300;
+        }
+		
+        .controls { 
+            margin-top: 20px; 
+            padding-top: 15px;
+            border-top: 1px solid #333;
+            text-align: center;
+            margin-bottom: 20px;
+        } 
+        .gallery-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            justify-items: center;
+        }
+        .photo-card {
+            background-color: #333333;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.6); 
+            text-align: center;
+            padding: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.2s ease;
+            height: 270px;
+            box-sizing: border-box;
+            position: relative; 
+            display: flex;
+            flex-direction: column; 
+            justify-content: space-between; 
+        }
+        .photo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+        }
+        .photo-thumbnail {
+            width: 100%;
+            height: 180px;
+            object-fit: cover; 
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto; 
+            cursor: pointer;
+        }
+        .photo-number {
+            font-size: 14px;
+            font-weight: bold;
+            color: #4A90E2; 
+            margin-top: 10px; 
+            margin-bottom: 8px; 
+            text-align: center;
+            padding-top: 5px;
+            border-top: 1px solid #444; 
+        }
+        .btn-group { 
+            display: flex; 
+            justify-content: space-around; 
+            width: 100%;
+            height: 34px; 
+        }
+        .print-btn, .delete-btn {
+            padding: 8px 10px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 13px; 
+            flex-grow: 1; 
+            margin: 0 4px;
+            transition: background-color 0.3s;
+            font-weight: 500;
+        }
+        .print-btn { 
+            background-color: #34495E; 
+            color: white; 
+        }
+        .print-btn:hover {
+            background-color: #4A6A8A;
+        }
+        .delete-btn { 
+            background-color: #7F8C8D; 
+            color: white; 
+        }
+        .delete-btn:hover {
+             background-color: #95A5A6;
+        }
+        .status-message { color: #bbbbbb; text-align: center; margin-bottom: 10px; }
+        .input-description, .input-logo-url {
+            background-color: #222; color: white; border: 1px solid #555; border-radius: 4px; padding: 8px; width: 250px; margin-right: 8px; margin-top: 3px;
+        }
+        .controls button {
+            background-color: #4A90E2; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;
+        }
+        #printTemplate { display: none; }
+        .error-message { color: #ff6b6b; }
+        .modal {
+            display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center; backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background-color: #333333; padding: 40px 40px 30px 40px; border-radius: 10px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.7); color: #E0E0E0; position: relative; 
+        }
+        #countdownDisplay { font-size: 48px; font-weight: bold; color: #4A90E2; margin: 15px 0; }
+        .close-btn-x {
+            position: absolute; top: 10px; right: 15px; color: #888; font-size: 30px; font-weight: bold; cursor: pointer; transition: color 0.3s;
+        }
+        .close-btn-x:hover, .close-btn-x:focus { color: #fff; }
+        .lightbox {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; 
+            background-color: rgba(0,0,0,0.95); 
+            justify-content: center; align-items: center;
+        }
+        .lightbox-content-wrapper {
+            display: flex; 
+            max-width: 95%; 
+            max-height: 95%; 
+            gap: 25px; 
+            align-items: center; 
+            flex-wrap: nowrap;
+            justify-content: center;
+        }
+        #cropper-container {
+            max-width: 70vw; 
+            max-height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .lightbox-content {
+            max-width: 70vw; 
+            max-height: 80vh; 
+            object-fit: contain; 
+            box-shadow: 0 0 40px rgba(74, 144, 226, 0.3); 
+            border-radius: 8px; 
+            transition: filter 0.3s ease; 
+            transform-origin: center;
+        }
+        .close-btn {
+            position: absolute; top: 20px; right: 40px; color: #fff; font-size: 45px; font-weight: 300; cursor: pointer; transition: 0.3s;
+        }
+        .close-btn:hover, .close-btn:focus { color: #4A90E2; }
+        .editor-controls {
+            background-color: #333333; padding: 20px; border-radius: 8px; display: flex; flex-direction: column; gap: 15px; width: 220px; box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+        .editor-controls label {
+            font-size: 14px; color: #E0E0E0; display: flex; flex-direction: column; gap: 5px;
+        }
+        .editor-controls input[type=range] {
+            width: 100%; cursor: pointer;
+        }
+        .editor-print-btn, .bw-toggle-btn, .reset-btn {
+            padding: 10px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; margin-top: 10px; width: 100%;
+        }
+        .editor-print-btn { background-color: #4CAF50; }
+        .reset-btn { background-color: #E74C3C; }
+        .bw-toggle-btn { 
+            padding: 5px 10px; 
+            font-size: 12px;
+            background-color: #F39C12; 
+            margin-top: 0px;
+        }
+        .bw-toggle-btn.active {
+            background-color: #D35400; 
+        }
+
+        /* Estilos de impresión */
+        @media print {
+            body > *:not(#printTemplate) { display: none !important; visibility: hidden !important; }
+            #printTemplate { display: block !important; visibility: visible !important; position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+            @page { size: 98mm 104mm; margin: 0; }
+            body { width: 98mm; height: 104mm; margin: 0; padding: 0;}
+            .template-container-inner { 
+                width: 98mm; height: 104mm; padding: 4mm; 
+                background-color: white; box-sizing: border-box; 
+                font-family: 'Constantia', Georgia, serif; 
+                display: flex; flex-direction: column; 
+                justify-content: space-between; 
+            }
+            .photo-print-wrapper { 
+                flex-grow: 1; width: 100%; display: flex; justify-content: center; align-items: center; 
+                overflow: hidden; margin-bottom: 2mm; position: relative;
+            }
+            .photo-print { 
+                max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; display: block;
+            }
+            .footer-print-area { 
+                height: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+                box-sizing: border-box; padding-top: 1mm; 
+            }
+            .description-print { 
+                font-size: 14px; color: #000; font-weight: normal; margin: 0 0 2mm 0; text-align: center; width: 100%; line-height: 1.2; 
+            }
+            .logo-print { 
+                max-width: 23mm; max-height: 5mm; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Rayuela - Fabrica de Recuerdos</h1>
+	<button id="hardReloadBtn" title="Actualizar fotos">
+⟳
+</button>
+
+<style>
+#hardReloadBtn{
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    background: #222;
+    color: #4A90E2;
+    border: 1px solid #4A90E2;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0.6;
+}
+#hardReloadBtn:hover{
+    opacity: 1;
+}
+</style>
+
+<script>
+document.getElementById('hardReloadBtn').onclick = () => {
+    window.location.reload(true);
+};
+</script>
+
+
+    <p class="status-message" id="statusMessage">Última actualización: --</p>
+    
+    <div class="gallery-container" id="photoGallery"></div>
+    
+    <div class="controls">
+        <!-- NUEVA FUNCIONALIDAD PROYECTOR: Botón para abrir la ventana -->
+        <button onclick="abrirProyector()" style="margin-right: 15px;">📸 Abrir Proyector (Pantalla Externa)</button>
+
+        <input type="text" id="descripcionGlobal" value="¡Feliz Evento!" class="input-description" placeholder="Descripción...">
+        <input type="text" id="logoUrlInput" value="logo.png" class="input-logo-url" placeholder="Ruta del Logo...">
+        <button onclick="loadImages()">Actualizar Galería</button>
+    </div>
+
+    <div id="printTemplate"></div>
+    <!-- VENTANA MODAL PARA EL COOLDOWN -->
+    <div id="cooldownModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn-x" onclick="cancelCooldown()">&times;</span>
+            <h2>Impresión en curso...</h2>
+            <p>Por favor, espera el tiempo restante antes de enviar otra foto.</p>
+            <div id="countdownDisplay">20s</div>
+        </div>
+    </div>
+    <!-- FIN VENTANA MODAL -->
+    <!-- VENTANA MODAL/LIGHTBOX EDITOR -->
+    <div id="editorLightbox" class="lightbox">
+        <span class="close-btn" onclick="closeLightbox()">&times;</span>
+        <div class="lightbox-content-wrapper">
+            <canvas id="imageCanvas" style="display: none;"></canvas>
+            
+            <div id="cropper-container">
+                <img src="" class="lightbox-content" id="editorImage" alt="Vista previa de impresión">
+            </div>
+
+            <div class="editor-controls">
+                <h3>Ajustes de Imagen</h3>
+                <label>Brillo: <input type="range" id="brightnessControl" min="0" max="200" value="100" oninput="applyFilters()"></label>
+                <label>Contraste: <input type="range" id="contrastControl" min="0" max="200" value="100" oninput="applyFilters()"></label>
+                <label>Saturación: <input type="range" id="saturateControl" min="0" max="200" value="100" oninput="applyFilters()"></label>
+                
+                <button id="bwToggleButton" class="bw-toggle-btn" onclick="toggleGrayscale()">Blanco y Negro OFF</button>
+                
+                <button onclick="resetEditorFilters()" class="reset-btn">Resetear Filtros y Recorte</button>
+
+                <button onclick="applyCropAndPrint()" class="editor-print-btn">Imprimir</button>
+            </div>
+        </div>
+    </div>
+    <!-- FIN LIGHTBOX EDITOR -->
+    <script>
+        <!-- NUEVA FUNCIONALIDAD PROYECTOR: Función JS para abrir la ventana -->
+        function abrirProyector() {
+            // Abre una nueva ventana que cargará 'proyector.php'
+            // El usuario deberá permitir pop-ups en su navegador.
+            window.open('proyector.php', '_blank', 'width=1000,height=700,resizable=yes,scrollbars=no,fullscreen=no');
+        }
+
+        // Variables globales
+        let isPrintQueueBusy = false;
+        const PRINT_COOLDOWN_TIME = 25000; // 25 segundos
+        let countdownTimer;
+        let currentEditingImageUrl = ''; 
+        let isGrayscaleActive = false;
+        
+        let crop = { startX: 0, startY: 0, endX: 0, endY: 0, width: 0, height: 0, active: false };
+        let imageOriginalWidth = 0;
+        let imageOriginalHeight = 0;
+
+        // --- Funciones del Editor de Imágenes y Recorte ---
+        function openLightbox(imageUrl) {
+            currentEditingImageUrl = imageUrl;
+            const editorImage = document.getElementById('editorImage');
+            editorImage.src = imageUrl;
+            editorImage.onload = () => {
+                resetEditorFilters();
+                initializeCropping(editorImage);
+            };
+            if (editorImage.complete) {
+                resetEditorFilters();
+                initializeCropping(editorImage);
+            }
+            document.getElementById('editorLightbox').style.display = 'flex';
+        }
+
+        function closeLightbox() {
+            document.getElementById('editorLightbox').style.display = 'none';
+            currentEditingImageUrl = '';
+            const cropOverlay = document.getElementById('crop-overlay');
+            if (cropOverlay) { cropOverlay.remove(); }
+        }
+        
+        function resetEditorFilters() {
+            document.getElementById('brightnessControl').value = 100;
+            document.getElementById('contrastControl').value = 100;
+            document.getElementById('saturateControl').value = 100;
+            isGrayscaleActive = false;
+            updateGrayscaleButton();
+            applyFilters();
+            crop.width = 0;
+            crop.height = 0;
+            const cropOverlay = document.getElementById('crop-overlay');
+            if (cropOverlay) { cropOverlay.style.display = 'none'; }
+        }
+
+        function toggleGrayscale() {
+            isGrayscaleActive = !isGrayscaleActive;
+            updateGrayscaleButton();
+            applyFilters();
+        }
+
+        function updateGrayscaleButton() {
+            const button = document.getElementById('bwToggleButton');
+            if (isGrayscaleActive) {
+                button.textContent = 'Blanco y Negro ON';
+                button.classList.add('active');
+            } else {
+                button.textContent = 'Blanco y Negro OFF';
+                button.classList.remove('active');
+            }
+        }
+
+        function applyFilters() {
+            const brightness = document.getElementById('brightnessControl').value;
+            const contrast = document.getElementById('contrastControl').value;
+            const saturate = document.getElementById('saturateControl').value;
+            const grayscaleValue = isGrayscaleActive ? 100 : 0; 
+            const editorImage = document.getElementById('editorImage');
+            editorImage.style.filter = `brightness(${brightness}%) contrast(${contrast}%) grayscale(${grayscaleValue}%) saturate(${saturate}%)`;
+            editorImage.style.transform = 'none';
+        }
+
+        <!-- --- LÓGICA DE RECORTE PERSONALIZADA CON SOPORTE TÁCTIL Y MOUSE --- -->
+        function initializeCropping(imgElement) {
+            imageOriginalWidth = imgElement.naturalWidth;
+            imageOriginalHeight = imgElement.naturalHeight;
+            const container = document.getElementById('cropper-container');
+            
+            let cropOverlay = document.getElementById('crop-overlay');
+            if (cropOverlay) { cropOverlay.remove(); }
+
+            cropOverlay = document.createElement('div');
+            cropOverlay.id = 'crop-overlay';
+            cropOverlay.style.position = 'absolute';
+            cropOverlay.style.border = '2px dashed #4A90E2';
+            cropOverlay.style.backgroundColor = 'rgba(74, 144, 226, 0.2)';
+            cropOverlay.style.pointerEvents = 'none'; 
+            cropOverlay.style.display = 'none';
+            container.style.position = 'relative'; 
+            container.appendChild(cropOverlay);
+
+            crop.active = false;
+            crop.width = 0;
+            crop.height = 0;
+            
+            function getCoords(e) {
+                const rect = imgElement.getBoundingClientRect();
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+                const offsetX = clientX - rect.left;
+                const offsetY = clientY - rect.top;
+                return { offsetX, offsetY }; 
+            }
+
+            imgElement.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                const coords = getCoords(e);
+                startCropping(coords.offsetX, coords.offsetY);
+            });
+            document.addEventListener('mousemove', (e) => {
+                if (crop.active) {
+                    e.preventDefault();
+                    const coords = getCoords(e);
+                    updateCropping(coords.offsetX, coords.offsetY);
+                }
+            });
+            document.addEventListener('mouseup', (e) => {
+                if (crop.active) { stopCropping(); }
+            });
+            imgElement.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) { 
+                    e.preventDefault();
+                    const coords = getCoords(e);
+                    startCropping(coords.offsetX, coords.offsetY);
+                }
+            }, { passive: false }); 
+            document.addEventListener('touchmove', (e) => {
+                 if (crop.active) {
+                     e.preventDefault();
+                     const coords = getCoords(e);
+                     updateCropping(coords.offsetX, coords.offsetY);
+                 }
+            }, { passive: false });
+            document.addEventListener('touchend', (e) => {
+                if (crop.active) { stopCropping(); }
+            });
+
+            function startCropping(offsetX, offsetY) {
+                crop.startX = Math.max(0, Math.min(offsetX, imgElement.clientWidth));
+                crop.startY = Math.max(0, Math.min(offsetY, imgElement.clientHeight));
+                crop.active = true;
+                cropOverlay.style.left = `${crop.startX}px`;
+                cropOverlay.style.top = `${crop.startY}px`;
+                cropOverlay.style.width = '0px';
+                cropOverlay.style.height = '0px';
+                cropOverlay.style.display = 'block';
+                imgElement.style.cursor = 'crosshair'; 
+            }
+
+            function updateCropping(offsetX, offsetY) {
+                crop.endX = Math.max(0, Math.min(offsetX, imgElement.clientWidth));
+                crop.endY = Math.max(0, Math.min(offsetY, imgElement.clientHeight));
+                crop.width = crop.endX - crop.startX;
+                crop.height = crop.endY - crop.startY;
+                cropOverlay.style.left = `${Math.min(crop.startX, crop.endX)}px`;
+                cropOverlay.style.top = `${Math.min(crop.startY, crop.endY)}px`;
+                cropOverlay.style.width = `${Math.abs(crop.width)}px`; 
+                cropOverlay.style.height = `${Math.abs(crop.height)}px`; 
+            }
+
+            function stopCropping() {
+                crop.active = false;
+                imgElement.style.cursor = 'pointer';
+                const minX = Math.min(crop.startX, crop.endX);
+                const minY = Math.min(crop.startY, crop.endY);
+                const width = Math.abs(crop.width); 
+                const height = Math.abs(crop.height); 
+                if (width > 10 && height > 10) { 
+                    crop.startX = minX;
+                    crop.startY = minY;
+                    crop.width = width;
+                    crop.height = height;
+                } else {
+                    crop.width = 0; crop.height = 0; cropOverlay.style.display = 'none';
+                }
+            }
+        }
+        
+        <!-- Función que se llama desde el botón "Imprimir" -->
+        function applyCropAndPrint() {
+            const editorImage = document.getElementById('editorImage');
+            const canvas = document.getElementById('imageCanvas');
+            const ctx = canvas.getContext('2d');
+            const brightness = document.getElementById('brightnessControl').value;
+            const contrast = document.getElementById('contrastControl').value;
+            const saturate = document.getElementById('saturateControl').value;
+            const grayscaleValue = isGrayscaleActive ? 100 : 0;
+            let imageUrlToPrint = currentEditingImageUrl;
+
+            if (crop.width > 10 && crop.height > 10) {
+                const scaleX = editorImage.naturalWidth / editorImage.clientWidth;
+                const scaleY = editorImage.naturalHeight / editorImage.clientHeight;
+                const cropX = crop.startX * scaleX;
+                const cropY = crop.startY * scaleY;
+                const cropW = crop.width * scaleX;
+                const cropH = crop.height * scaleY;
+                canvas.width = cropW;
+                canvas.height = cropH;
+                ctx.drawImage(editorImage, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+                imageUrlToPrint = canvas.toDataURL('image/jpeg');
+            }
+            printImage(imageUrlToPrint, brightness, contrast, grayscaleValue, saturate);
+            closeLightbox();
+        }
+        
+        <!-- --- Funciones de Galería y Borrado (MODIFICADAS) --- -->
+        function cancelCooldown() {
+            clearTimeout(countdownTimer); 
+            isPrintQueueBusy = false;
+            document.getElementById('cooldownModal').style.display = 'none';
+            document.getElementById('statusMessage').textContent = "Espera cancelada. Listo para imprimir.";
+            loadImages();
+        }
+        
+        function saveSettings() { 
+            localStorage.setItem('descripcionGlobal', document.getElementById('descripcionGlobal').value); 
+            localStorage.setItem('logoUrlInput', document.getElementById('logoUrlInput').value);
+        }
+
+        function loadSettings() { 
+            const savedDescription = localStorage.getItem('descripcionGlobal'); 
+            const savedLogoUrl = localStorage.getItem('logoUrlInput');
+            if (savedDescription) { document.getElementById('descripcionGlobal').value = savedDescription; }
+            if (savedLogoUrl) { document.getElementById('logoUrlInput').value = savedLogoUrl; }
+            document.getElementById('descripcionGlobal').addEventListener('input', saveSettings);
+            document.getElementById('logoUrlInput').addEventListener('input', saveSettings);
+        }
+        
+        // MODIFICADO: Esta función ahora solo elimina visualmente la tarjeta de la galería (DOM)
+        function deleteImageVisual(cardElement) { 
+            if (!confirm('¿Estás seguro de eliminar la foto?')) return;
+            cardElement.remove(); 
+            console.log('Foto oculta visualmente de la galería.');
+        }
+
+        <!-- FUNCIÓN loadImages() actualizada para forzar el orden correcto (nueva primero, vieja al final) -->
+        let imagenesCargadas = new Set();
+
+async function loadImages() {
+    const gallery = document.getElementById('photoGallery'); 
+    const status = document.getElementById('statusMessage');
+
+    const params = new URLSearchParams(window.location.search);
+    const evento = params.get('evento') || 'demo';
+
+    try {
+        const response = await fetch('get_images.php?evento=' + evento);
+        const imageUrls = await response.json(); 
+
+        imageUrls.forEach((imageData, index) => {
+            const imageName = imageData.name;
+
+            if (imagenesCargadas.has(imageName)) return;
+
+            imagenesCargadas.add(imageName);
+
+            const imgUrl = `eventos/${evento}/imagenes/${imageName}?v=${imageData.timestamp}`;
+
+            const card = document.createElement('div'); 
+            card.className = 'photo-card'; 
+
+            const photoNumber = document.createElement('div');
+            photoNumber.className = 'photo-number';
+            photoNumber.textContent = imageUrls.length - index; 
+            
+            const img = document.createElement('img'); 
+            img.src = imgUrl; 
+            img.className = 'photo-thumbnail';
+            img.onclick = () => openLightbox(imgUrl); 
+
+            const btnGroup = document.createElement('div'); 
+            btnGroup.className = 'btn-group';
+
+            const printButton = document.createElement('button'); 
+            printButton.textContent = 'Imprimir'; 
+            printButton.className = 'print-btn'; 
+            printButton.onclick = (e) => { e.stopPropagation(); openLightbox(imgUrl); }; 
+
+            const deleteButton = document.createElement('button'); 
+            deleteButton.textContent = 'Eliminar'; 
+            deleteButton.className = 'delete-btn'; 
+            deleteButton.onclick = (e) => { e.stopPropagation(); card.remove(); }; 
+
+            btnGroup.appendChild(printButton); 
+            btnGroup.appendChild(deleteButton); 
+            
+            card.appendChild(img); 
+            card.appendChild(photoNumber);
+            card.appendChild(btnGroup); 
+            
+            gallery.prepend(card); // NUEVAS ARRIBA
+        });
+
+        status.textContent = 'Última actualización: ' + new Date().toLocaleTimeString();
+
+    } catch (error) { 
+        status.textContent = 'Error al cargar las imágenes';
+        console.error(error);
+    }
+}
+
+
+
+        <!-- --- Funciones de Impresión --- -->
+
+        function startCooldown() {
+            isPrintQueueBusy = true;
+            document.getElementById('cooldownModal').style.display = 'flex';
+            let timeLeft = PRINT_COOLDOWN_TIME / 1000;
+            const countdownDisplay = document.getElementById('countdownDisplay');
+            countdownDisplay.textContent = timeLeft + 's';
+
+            countdownTimer = setInterval(() => {
+                timeLeft--;
+                countdownDisplay.textContent = timeLeft + 's';
+                if (timeLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    document.getElementById('cooldownModal').style.display = 'none';
+                    isPrintQueueBusy = false;
+                    loadImages();
+                }
+            }, 1000);
+        }
+        
+        function printImage(finalImageUrl, brightness, contrast, grayscaleValue, saturate) {
+            if (isPrintQueueBusy) {
+                alert("Por favor, espera a que termine el proceso de impresión anterior.");
+                return;
+            }
+
+            const printTemplate = document.getElementById('printTemplate');
+            const description = document.getElementById('descripcionGlobal').value;
+            const logoUrl = document.getElementById('logoUrlInput').value;
+
+            const imgToPrint = new Image();
+            imgToPrint.src = finalImageUrl;
+            imgToPrint.className = 'photo-print';
+            
+            imgToPrint.style.filter = `brightness(${brightness}%) contrast(${contrast}%) grayscale(${grayscaleValue}%) saturate(${saturate}%)`;
+            imgToPrint.style.transform = 'none'; 
+            imgToPrint.alt = 'Foto a imprimir';
+
+            imgToPrint.onload = () => {
+                printTemplate.innerHTML = `
+                    <div class="template-container-inner">
+                        <div class="photo-print-wrapper">
+                        </div>
+                        <div class="footer-print-area">
+                            <p class="description-print">${description}</p>
+                            ${logoUrl ? `<img src="${logoUrl}" class="logo-print" alt="Logo del evento">` : ''}
+                        </div>
+                    </div>
+                `;
+                printTemplate.querySelector('.photo-print-wrapper').appendChild(imgToPrint);
+                window.print();
+                startCooldown();
+            };
+            
+            imgToPrint.onerror = () => {
+                alert("Error al cargar la imagen o el logo para imprimir.");
+                isPrintQueueBusy = false;
+            };
+        }
+
+        <!-- --- Inicialización --- -->
+        document.addEventListener('DOMContentLoaded', (event) => {
+            loadSettings();
+			const params = new URLSearchParams(window.location.search);
+const evento = params.get('evento') || 'demo';
+localStorage.setItem('rayuela_evento', evento);
+
+            loadImages();
+            setInterval(loadImages, 5000); <!-- Recarga cada 5 segundos -->
+        });
+    </script>
+</body>
+</html>

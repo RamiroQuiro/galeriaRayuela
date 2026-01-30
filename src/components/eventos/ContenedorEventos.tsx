@@ -99,7 +99,7 @@ export default function ContenedorEventos({
         <div className="mt-8">
           <a
             href="/events/create"
-            className="glass-button inline-flex px-8 py-4 text-base font-bold rounded-xl bg-blue-600 text-white hover:scale-105 hover:bg-blue-700 transition shadow-lg shadow-blue-500/20"
+            className="inline-flex bg-blue-600 hover:bg-blue-700 shadow-blue-500/20 shadow-lg px-8 py-4 rounded-xl font-bold text-white text-base hover:scale-105 transition glass-button"
           >
             Comenzar Ahora - Crear mi Primer Evento
           </a>
@@ -110,14 +110,14 @@ export default function ContenedorEventos({
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="gap-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {misEventos.map((event) => (
           <div
             key={event.id}
-            className="glass-card group flex flex-col h-full overflow-hidden rounded-xl border border-white/10 bg-white/5 backdrop-blur-md"
+            className="group flex flex-col bg-white/5 backdrop-blur-md border border-white/10 rounded-xl h-full overflow-hidden glass-card"
           >
             {/* Event Header/Image */}
-            <div className="h-48 bg-gray-800 relative overflow-hidden">
+            <div className="relative bg-gray-800 h-48 overflow-hidden">
               {event.imagenPortada ? (
                 <img
                   src={event.imagenPortada}
@@ -125,12 +125,12 @@ export default function ContenedorEventos({
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-800 to-gray-900 group-hover:from-gray-700 group-hover:to-gray-800 transition-colors">
-                  <Calendar className="h-12 w-12 text-gray-600" />
+                <div className="flex justify-center items-center bg-linear-to-br from-gray-800 group-hover:from-gray-700 to-gray-900 group-hover:to-gray-800 w-full h-full transition-colors">
+                  <Calendar className="w-12 h-12 text-gray-600" />
                 </div>
               )}
 
-              <div className="absolute top-4 right-4">
+              <div className="top-4 right-4 absolute">
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium backdrop-blur-md border border-white/10 ${
                     event.estado === "activo"
@@ -146,10 +146,10 @@ export default function ContenedorEventos({
             </div>
 
             {/* Event details */}
-            <div className="p-6 flex-1 flex flex-col">
+            <div className="flex flex-col flex-1 p-6">
               <div className="flex justify-between items-start mb-2">
                 <h3
-                  className="text-xl font-bold text-white truncate pr-2"
+                  className="pr-2 font-bold text-white text-xl truncate"
                   title={event.name}
                 >
                   {event.name}
@@ -170,7 +170,7 @@ export default function ContenedorEventos({
                   <Smartphone
                     className={`h-4 w-4 ${event.whatsappActivo ? "animate-pulse" : ""}`}
                   />
-                  <span className="text-[10px] font-black uppercase tracking-tighter">
+                  <span className="font-black text-[10px] uppercase tracking-tighter">
                     WA {event.whatsappActivo ? "ON" : "OFF"}
                   </span>
                 </Button>
@@ -191,22 +191,22 @@ export default function ContenedorEventos({
                   <Star
                     className={`h-4 w-4 ${event.esPrincipal ? "fill-current" : ""}`}
                   />
-                  <span className="text-[10px] font-black uppercase tracking-tighter text-center">
+                  <span className="font-black text-[10px] text-center uppercase tracking-tighter">
                     QR FIJO <br /> {event.esPrincipal ? "ACTIVO" : "VINCULAR"}
                   </span>
                 </Button>
               </div>
 
-              <div className="mt-auto border-t border-white/10 pt-4 flex flex-col gap-3">
+              <div className="flex flex-col gap-3 mt-auto pt-4 border-white/10 border-t">
                 {/* Primary Actions - The Flow */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="gap-2 grid grid-cols-3">
                   <a
                     href={`/dashboard/eventos/${event.codigoAcceso}/poster`}
-                    className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all group/btn"
+                    className="group/btn flex flex-col justify-center items-center gap-1 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-gray-300 hover:text-white transition-all"
                     title="Paso 2: Imprimir QR"
                   >
-                    <Printer className="h-5 w-5 text-neon-purple group-hover/btn:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold uppercase tracking-wide">
+                    <Printer className="w-5 h-5 text-neon-purple group-hover/btn:scale-110 transition-transform" />
+                    <span className="font-bold text-[10px] uppercase tracking-wide">
                       Poster
                     </span>
                   </a>
@@ -214,34 +214,51 @@ export default function ContenedorEventos({
                   <a
                     href={`/eventos/${event.codigoAcceso}/subir`}
                     target="_blank"
-                    className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all group/btn"
+                    className="group/btn flex flex-col justify-center items-center gap-1 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-gray-300 hover:text-white transition-all"
                     title="Paso 3: Subir Fotos"
                   >
-                    <Plus className="h-5 w-5 text-neon-pink group-hover/btn:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold uppercase tracking-wide">
+                    <Plus className="w-5 h-5 text-neon-pink group-hover/btn:scale-110 transition-transform" />
+                    <span className="font-bold text-[10px] uppercase tracking-wide">
                       Subir
                     </span>
                   </a>
 
-                  <a
-                    href={`/events/${event.codigoAcceso}`}
-                    className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all group/btn"
+                  <button
+                    onClick={() => {
+                      const width = window.screen.width;
+                      const height = window.screen.height;
+                      const features = `
+                        width=${width},
+                        height=${height},
+                        left=0,
+                        top=0,
+                        fullscreen=yes,
+                        toolbar=no,
+                        menubar=no,
+                        scrollbars=no,
+                        resizable=no,
+                        location=no,
+                        status=no
+                      `;
+                      window.open(`/events/${event.codigoAcceso}/fullscreen`, `galeria_${event.codigoAcceso}`, features);
+                    }}
+                    className="group/btn flex flex-col justify-center items-center gap-1 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-gray-300 hover:text-white transition-all"
                     title="Paso 4: Ver Galería"
                   >
-                    <Eye className="h-5 w-5 text-neon-blue group-hover/btn:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold uppercase tracking-wide">
+                    <Eye className="w-5 h-5 text-neon-blue group-hover/btn:scale-110 transition-transform" />
+                    <span className="font-bold text-[10px] uppercase tracking-wide">
                       Ver
                     </span>
-                  </a>
+                  </button>
 
                   <a
                     href={`/proyector/${event.codigoAcceso}`}
                     target="_blank"
-                    className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/40 text-blue-100 hover:text-white transition-all group/btn border border-blue-500/30 text-center"
+                    className="group/btn flex flex-col flex-1 justify-center items-center gap-1 bg-blue-600/20 hover:bg-blue-600/40 p-2 border border-blue-500/30 rounded-lg text-blue-100 hover:text-white text-center transition-all"
                     title="Proyección Combinada (Fotos + Mensajes)"
                   >
-                    <Monitor className="h-5 w-5 text-blue-400 group-hover/btn:scale-110 transition-transform" />
-                    <span className="text-[9px] font-bold uppercase tracking-tight">
+                    <Monitor className="w-5 h-5 text-blue-400 group-hover/btn:scale-110 transition-transform" />
+                    <span className="font-bold text-[9px] uppercase tracking-tight">
                       Proyectar
                     </span>
                   </a>
@@ -249,28 +266,28 @@ export default function ContenedorEventos({
                   <a
                     href={`/proyector/${event.codigoAcceso}?display=messages`}
                     target="_blank"
-                    className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-zinc-800/40 hover:bg-zinc-800/60 text-zinc-400 hover:text-white transition-all group/btn border border-white/5 text-center"
+                    className="group/btn flex flex-col flex-1 justify-center items-center gap-1 bg-zinc-800/40 hover:bg-zinc-800/60 p-2 border border-white/5 rounded-lg text-zinc-400 hover:text-white text-center transition-all"
                     title="Solo Muro de Mensajes"
                   >
-                    <MessageSquare className="h-5 w-5 text-zinc-500 group-hover/btn:scale-110 transition-transform" />
-                    <span className="text-[9px] font-bold uppercase tracking-tight">
+                    <MessageSquare className="w-5 h-5 text-zinc-500 group-hover/btn:scale-110 transition-transform" />
+                    <span className="font-bold text-[9px] uppercase tracking-tight">
                       Solo Mensajes
                     </span>
                   </a>
                 </div>
 
                 {/* Secondary Actions - Admin */}
-                <div className="flex justify-between items-center border-t border-white/5 pt-2">
-                  <span className="text-[10px] text-gray-600 font-mono">
+                <div className="flex justify-between items-center pt-2 border-white/5 border-t">
+                  <span className="font-mono text-[10px] text-gray-600">
                     ID: {event.codigoAcceso}
                   </span>
                   <div className="flex gap-1">
                     <button
                       onClick={() => setEditingEvent(event)}
-                      className="p-2 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-all flex items-center gap-1"
+                      className="flex items-center gap-1 hover:bg-white/5 p-2 rounded-lg text-gray-500 hover:text-white transition-all"
                       title="Editar Configuración"
                     >
-                      <Edit className="h-3 w-3" />
+                      <Edit className="w-3 h-3" />
                       <span className="text-[10px]">Editar</span>
                     </button>
                     <button
@@ -290,18 +307,18 @@ export default function ContenedorEventos({
                           else alert(data.message);
                         }
                       }}
-                      className="p-2 hover:bg-yellow-500/10 rounded-lg text-gray-500 hover:text-yellow-400 transition-all flex items-center gap-1"
+                      className="flex items-center gap-1 hover:bg-yellow-500/10 p-2 rounded-lg text-gray-500 hover:text-yellow-400 transition-all"
                       title="Lanzar Sorteo"
                     >
-                      <Trophy className="h-3 w-3" />
+                      <Trophy className="w-3 h-3" />
                       <span className="text-[10px]">Sorteo</span>
                     </button>
                     <button
                       onClick={() => handleEliminar(event.id, event.name)}
-                      className="p-2 hover:bg-red-500/10 rounded-lg text-gray-600 hover:text-red-400 transition-all flex items-center gap-1"
+                      className="flex items-center gap-1 hover:bg-red-500/10 p-2 rounded-lg text-gray-600 hover:text-red-400 transition-all"
                       title="Mover a Papelera"
                     >
-                      <Trash className="h-3 w-3" />
+                      <Trash className="w-3 h-3" />
                       <span className="text-[10px]">Borrar</span>
                     </button>
                     <button
@@ -330,10 +347,10 @@ export default function ContenedorEventos({
                           }
                         }
                       }}
-                      className="p-2 hover:bg-orange-500/10 rounded-lg text-gray-600 hover:text-orange-500 transition-all flex items-center gap-1"
+                      className="flex items-center gap-1 hover:bg-orange-500/10 p-2 rounded-lg text-gray-600 hover:text-orange-500 transition-all"
                       title="Resetear Mensajes (Limpiar Muro)"
                     >
-                      <Trash className="h-3 w-3" />
+                      <Trash className="w-3 h-3" />
                       <span className="text-[10px]">Reset Msj</span>
                     </button>
                   </div>

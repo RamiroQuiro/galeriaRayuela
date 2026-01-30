@@ -245,7 +245,7 @@ async function getOrCreateBaileysClient(userId) {
            const remoteJid = msg.key.remoteJid;
            
            // 1. SOLO permitir chats privados (ignorar grupos, canales, difusiones)
-           if (!remoteJid.endsWith('@s.whatsapp.net')) {
+           if (!remoteJid.endsWith('@s.whatsapp.net') && !remoteJid.endsWith('@lid')) {
               console.log(`[WhatsApp] 👥 Ignorando origen no soportado (grupo/canal/otro): ${remoteJid}`);
               continue;
            }

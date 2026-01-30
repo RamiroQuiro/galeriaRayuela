@@ -25,9 +25,11 @@ const FILTROS_INICIALES: Filtros = {
 export default function ModalFoto({
   fotoSeleccionada,
   setFotoSeleccionada,
+  nombreEvento,
 }: {
   fotoSeleccionada: Image;
   setFotoSeleccionada: React.Dispatch<React.SetStateAction<Image | null>>;
+  nombreEvento?: string;
 }) {
   const [modoRecorte, setModoRecorte] = useState(false);
   const cropperRef = useRef<ReactCropperElement>(null);
@@ -94,6 +96,7 @@ export default function ModalFoto({
         if (prev <= 1) {
           clearInterval(contador);
           contadorRef.current = null;
+          setMostrarEsperaImpresion(false);
           return 0;
         }
         return prev - 1;
@@ -157,7 +160,7 @@ export default function ModalFoto({
           <div class="polaroid-print">
             <img src="${fotoSeleccionada?.path}" />
             <div class="caption">
-              ${fotoSeleccionada?.nombreInvitado || "Recuerdo"}
+              ${nombreEvento || "Recuerdo"}
             </div>
           </div>
           <script>
@@ -224,7 +227,7 @@ export default function ModalFoto({
             )}
 
             <p className="right-0 bottom-6 md:bottom-10 left-0 absolute mt-6 md:mt-8 font-serif font-bold text-zinc-800 text-3xl md:text-5xl text-center italic tracking-tight">
-              {fotoSeleccionada.nombreInvitado || "Recuerdo"}
+              {nombreEvento || "Recuerdo"}
             </p>
           </div>
         </div>
